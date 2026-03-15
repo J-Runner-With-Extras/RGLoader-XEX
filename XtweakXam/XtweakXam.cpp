@@ -281,7 +281,7 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 
 
 	if(ret >= 0){
-		
+
 		if(stricmp(xexName, XEXLOAD_HUD) == 0){
 			printf("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n\n", xexName);
 			
@@ -298,6 +298,7 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 		{
 			if(stricmp(xexName + strlen(xexName) - 10, xshellName) == 0){
 				printf("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n\n", xexName);
+
 				rTemp = reader->Get("Config", "Redirect_Xshell_Start_But", "NOTFOUND");
 				if(rTemp != "NOTFOUND" && (rTemp != "1" && rTemp != "true" && rTemp!="on")  && (rTemp != "0" && rTemp != "false" && rTemp!="off")){
 					printf("     * Remapping xshell start button to %s.\n\n", rTemp.c_str());
