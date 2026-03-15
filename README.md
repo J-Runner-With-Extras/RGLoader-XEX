@@ -1,17 +1,10 @@
 # RGLoader.xex - homebrew KXAM fixup tool for 360.
 
-This is a mod to RGLoader.xex that adds OGXbox emulator support by turning on memory protection at the right time
-Original code for RGLoader.xex can be found here: https://github.com/RGLoader/RGLoader-XEX
+This is the runtime rgloader.xex source as included with the J-Runner with Extras 17489_RGL package. It adds a number of enhancements over the classic RGLoader-XeX
 
-# IMPORTANT NOTES. READ THIS!
-- if this dosent work for you, you need to patch your nand image. rgloader team got an adress wrong. patcher: https://github.com/552eden/RGPatcher
-- while the Guide (hud.xex) works now, going back to the dash usually crashes the console unless you press B before Avatars are loaded. will be fixed (maybe).
-- this is a beta and will probably crash here and there. please update me on crashes!
-- This probably wont affect you, but this is the old (and more commonly used) version of RGLoader.xex. I also have a version of this for the new version: https://github.com/552eden/RGLoader
-
-# How to use?
-- Compile or grab latest RGLoader.xex form releases (https://github.com/552eden/RGLoader-XEX/releases#latest)
-- replace your current RGLoader.xex. if you have a 16mb nand it will be in HDD:\filesystems\17489-dev\RGloader.xex. if you have a big boi nand, itll be in FLASH:\RGloader.xex. good luck with that lol.
+- Fixed offsets for 17489 and 17489 spoofed to 17559
+- RGLoader.ini and RGLoader.xex can live in flash as a backup for 16mb consoles
+- Memory protection toggle for OG xbox emulator (Thanks to Eden552)
 
 # Thanks
 - Thanks to RGLoader team for making this thing
