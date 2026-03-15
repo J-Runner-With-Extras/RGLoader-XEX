@@ -212,7 +212,7 @@ int patch_hook_xexload(void){
 #define PROTECT_OFF		0
 #define PROTECT_ON		1
 // track the current status by setting this value
-extern DWORD g_Protection; // 1 = on, 0 = off
+DWORD g_Protection; // 1 = on, 0 = off
 // change whether TLB memory protections are in effect
 #define SET_PROT_OFF	2
 #define SET_PROT_ON 3
