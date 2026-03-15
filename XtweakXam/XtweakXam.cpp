@@ -212,7 +212,7 @@ int patch_hook_xexload(void){
 #define PROTECT_OFF		0
 #define PROTECT_ON		1
 // track the current status by setting this value
-DWORD g_Protection; // 1 = on, 0 = off
+DWORD g_Protection = PROTECT_OFF; // 1 = on, 0 = off
 // change whether TLB memory protections are in effect
 #define SET_PROT_OFF	2
 #define SET_PROT_ON 3
@@ -235,6 +235,7 @@ void toggleMemProtection(char * xex)
 {
 	if (strncmp(xex, XBOX_XEX, strlen(XBOX_XEX)) == 0)
 	{
+		printf("Loading xefu, enabling memory protections");
 		//HvxSetState(SET_PROT_ON);
 		HvxGetVersions(FREEBOOT_SYSCALL_KEY, SET_PROT_ON);
 		g_Protection = PROTECT_ON;
@@ -244,10 +245,11 @@ void toggleMemProtection(char * xex)
 	else if ( strcmp(xex, XEXLOAD_DASH) == 0 ||
 	          strcmp(xex, XEXLOAD_DASH2) == 0 ||
 				 strcmp(xex, XEXLOAD_SHELL) == 0 ||
-				 strcmp(xex, XEXLOAD_SHELL2))
+				 strcmp(xex, XEXLOAD_SHELL2) == 0)
 	{
 		if (g_Protection)
 		{
+			printf("Returning to dash or xshell, disabling memory protections");
 			//HvxSetState(SET_PROT_OFF);
 			HvxGetVersions(FREEBOOT_SYSCALL_KEY, SET_PROT_OFF);
 			g_Protection = PROTECT_OFF;
@@ -282,7 +284,7 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 
 	if(ret >= 0){
 
-		if(stricmp(xexName, XEXLOAD_HUD) == 0){
+		if(stricmp(xexName, XEXLOAD_HUD) == 0 && PROTECT_OFF == g_Protection ){
 			printf("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n\n", xexName);
 			
 			rTemp = reader->Get("Expansion", "HUD_Jump_To_XShell", "NOTFOUND");
