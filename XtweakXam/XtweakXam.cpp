@@ -198,14 +198,73 @@ int patch_hook_xexload(void){
 
 #define XEXLOAD_DASH	"\\Device\\Flash\\dash.xex"
 #define XEXLOAD_DASH2	"\\SystemRoot\\dash.xex"
+#define XEXLOAD_SHELL	"\\Device\\Flash\\xshell.xex"
+#define XEXLOAD_SHELL2	"\\SystemRoot\\xshell.xex"
+
 #define XEXLOAD_SIGNIN	"signin.xex"
 #define XEXLOAD_CREATE	"createprofile.xex"
 #define XEXLOAD_HUD		"hud.xex"
+
+#define XBOX_XEX	"\\Device\\Harddisk0\\SystemPartition\\Compatibility"
+
+#define FREEBOOT_SYSCALL_KEY	0x72627472 
+// values to send when toggling
+#define PROTECT_OFF		0
+#define PROTECT_ON		1
+// track the current status by setting this value
+DWORD g_Protection = PROTECT_OFF; // 1 = on, 0 = off
+// change whether TLB memory protections are in effect
+#define SET_PROT_OFF	2
+#define SET_PROT_ON 3
+
+DWORD __declspec(naked) HvxGetVersions(DWORD key, DWORD mode)
+{
+        __asm
+        {
+                li r0, 0x0
+                sc
+                blr
+        }
+}
+
+//=============================================================================================================================================
+//		Hook used to catch the XB1 emulator load
+//		Will toggle the Mem protection on/off to prevent the crash
+//=============================================================================================================================================
+void toggleMemProtection(char * xex)
+{
+	if (strncmp(xex, XBOX_XEX, strlen(XBOX_XEX)) == 0)
+	{
+		printf("Loading xefu, enabling memory protections");
+		//HvxSetState(SET_PROT_ON);
+		HvxGetVersions(FREEBOOT_SYSCALL_KEY, SET_PROT_ON);
+		g_Protection = PROTECT_ON;
+		__dcbst(0, &g_Protection);
+		__sync();
+	}
+	else if ( strcmp(xex, XEXLOAD_DASH) == 0 ||
+	          strcmp(xex, XEXLOAD_DASH2) == 0 ||
+				 strcmp(xex, XEXLOAD_SHELL) == 0 ||
+				 strcmp(xex, XEXLOAD_SHELL2) == 0)
+	{
+		if (g_Protection)
+		{
+			printf("Returning to dash or xshell, disabling memory protections");
+			//HvxSetState(SET_PROT_OFF);
+			HvxGetVersions(FREEBOOT_SYSCALL_KEY, SET_PROT_OFF);
+			g_Protection = PROTECT_OFF;
+			__dcbst(0, &g_Protection);
+			__sync();
+		}
+	}
+}
 
 XEXPLOADIMAGEFUN XexpLoadImageSave = (XEXPLOADIMAGEFUN)XexpLoadImageSaveVar;
 NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE modHandle){
 
 	//printf(" * PERSISTENT XEX PATCHER\r\n");
+
+	toggleMemProtection((char *)xexName);
 
 	NTSTATUS ret = XexpLoadImageSave(xexName, typeInfo, ver, modHandle);
 
@@ -225,7 +284,7 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 
 	if(ret >= 0){
 
-		if(stricmp(xexName, XEXLOAD_HUD) == 0){
+		if(stricmp(xexName, XEXLOAD_HUD) == 0 && PROTECT_OFF == g_Protection ){
 			printf("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n\n", xexName);
 			
 			rTemp = reader->Get("Expansion", "HUD_Jump_To_XShell", "NOTFOUND");
@@ -241,7 +300,7 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 		{
 			if(stricmp(xexName + strlen(xexName) - 10, xshellName) == 0){
 				printf("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n\n", xexName);
-	
+
 				rTemp = reader->Get("Config", "Redirect_Xshell_Start_But", "NOTFOUND");
 				if(rTemp != "NOTFOUND" && (rTemp != "1" && rTemp != "true" && rTemp!="on")  && (rTemp != "0" && rTemp != "false" && rTemp!="off")){
 					printf("     * Remapping xshell start button to %s.\n\n", rTemp.c_str());
