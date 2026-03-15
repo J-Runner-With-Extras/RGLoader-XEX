@@ -198,8 +198,8 @@ int patch_hook_xexload(void){
 
 #define XEXLOAD_DASH	"\\Device\\Flash\\dash.xex"
 #define XEXLOAD_DASH2	"\\SystemRoot\\dash.xex"
-#define XEXLOAD_SHELL	"\\Device\\Flash\\dash.xex"
-#define XEXLOAD_SHELL2	"\\SystemRoot\\dash.xex"
+#define XEXLOAD_SHELL	"\\Device\\Flash\\xshell.xex"
+#define XEXLOAD_SHELL2	"\\SystemRoot\\xshell.xex"
 
 #define XEXLOAD_SIGNIN	"signin.xex"
 #define XEXLOAD_CREATE	"createprofile.xex"
