@@ -202,6 +202,89 @@ int patch_hook_xexload(void){
 #define XEXLOAD_CREATE	"createprofile.xex"
 #define XEXLOAD_HUD		"hud.xex"
 
+#define XEXLOAD_XEFU	"\\Device\\Harddisk0\\SystemPartition\\Compatibility"
+
+#define SET_PROT_ON		3
+#define SET_PROT_OFF	2
+
+BOOL g_Protection_Mode = false; //is mem protect on or off? true=on
+
+DWORD __declspec(naked) HvxGetVersions(DWORD key, DWORD mode)
+{
+        __asm
+        {
+                li r0, 0x0
+                sc
+                blr
+        }
+}
+
+void ReloadXex(const char* xexPath, PHANDLE phandle) {
+	const char* xboxXex = "xbox.xex";
+	const char* xefuXex = "xefu.xex";
+    // Unload the currently loaded XEX
+    HANDLE hModule;
+    printf("\n\nentered reset loop\n\n");
+	XexUnloadImage(*phandle);
+
+    // Load the XEX again
+//	XamLoaderGetLaunchData();
+	//XamLoaderLaunchTitle((LPCSTR)xexPath, 0);
+
+	
+	
+    NTSTATUS status = XexLoadExecutable((PCHAR)xexPath, phandle, 0, 0);
+    if (!NT_SUCCESS(status)) {
+        printf("Failed to load XEX: %s\n", xexPath);
+        return;
+    }
+	else
+		printf("Successfully reloaded XEX: %s\n", xexPath);
+
+    
+	Sleep(500);
+	return;
+}
+
+
+BOOL shutDownProto()
+{
+	if(XexGetModuleHandle("Proto.xex", &protoHandle) == 0)
+	{
+		printf("\n\nsuccsfully got proto handle\n\n");
+		((LDR_DATA_TABLE_ENTRY*)protoHandle)->LoadCount = 1;
+		XexUnloadImage(protoHandle);
+		
+		return true;
+	}
+	else
+		printf("\n\ndidnt get proto handle wtf\n\n");
+
+	return false;
+}
+
+void setMemProtect(BOOL state)
+{
+	if(state)
+	{
+		if(HvxGetVersions(0x72627472, SET_PROT_ON) == 1)
+		{
+			printf("\n\ntried to trun mem protect on and succeded\n\n");
+		}
+		else
+			printf("\n\ntried to trun mem protect on and failed!\n\n");
+	}
+	else
+	{
+		if(HvxGetVersions(0x72627472, SET_PROT_OFF) == 1)
+		{
+			printf("\n\ntried to trun mem protect off and succeded\n\n");
+		}
+		else
+			printf("\n\ntried to trun mem protect off and failed!\n\n");
+	}
+}
+
 XEXPLOADIMAGEFUN XexpLoadImageSave = (XEXPLOADIMAGEFUN)XexpLoadImageSaveVar;
 NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE modHandle){
 
@@ -224,8 +307,24 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 
 
 	if(ret >= 0){
+		
 
-		if(stricmp(xexName, XEXLOAD_HUD) == 0){
+		if(!g_Protection_Mode)
+		{
+			if(strstr(xexName, XEXLOAD_XEFU) != NULL){
+					printf("\n\nproto shutdown request sent!\n\n");
+					printf("\n\n reloading xex\n\n");
+					ReloadXex(xexName, modHandle);
+					printf("\n\nproto is down, enabling memory protection!");
+					Sleep(500);
+					setMemProtect(true); // set mem protecc to on
+					g_Protection_Mode = true;
+			}
+		}
+		
+
+		
+		if(stricmp(xexName, XEXLOAD_HUD) == 0 && !g_Protection_Mode){
 			printf("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n\n", xexName);
 			
 			rTemp = reader->Get("Expansion", "HUD_Jump_To_XShell", "NOTFOUND");
@@ -239,9 +338,16 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 		const char * xshellName = "xshell.xex";
 		if(strlen(xexName) >= 10)
 		{
+			
 			if(stricmp(xexName + strlen(xexName) - 10, xshellName) == 0){
 				printf("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n\n", xexName);
-	
+				if(g_Protection_Mode)
+				{
+					//trun off protection as we are going back to xshell.
+					setMemProtect(false); // set mem protecc to off
+					printf("Truned Protection OFF!");
+					g_Protection_Mode = false;
+				}
 				rTemp = reader->Get("Config", "Redirect_Xshell_Start_But", "NOTFOUND");
 				if(rTemp != "NOTFOUND" && (rTemp != "1" && rTemp != "true" && rTemp!="on")  && (rTemp != "0" && rTemp != "false" && rTemp!="off")){
 					printf("     * Remapping xshell start button to %s.\n\n", rTemp.c_str());
@@ -266,6 +372,16 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 				}
 			}
 		
+		}
+		else if(stricmp(xexName, XEXLOAD_DASH2) == 0 || stricmp(xexName, XEXLOAD_DASH) == 0 )
+		{
+			printf("\n\n going back to dash! disableing mem protecc\n\n");
+			//trun off protection as we are going back to dash.
+			setMemProtect(false); // set mem protecc to off
+			printf("Truned Protection OFF!");
+			g_Protection_Mode = false;
+
+
 		}
 	}
 	return ret;
