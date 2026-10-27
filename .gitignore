@@ -21,6 +21,8 @@ mono_crash.*
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+[Rr]elease_LTCG/
+[Rr]elease21250.0/
 x64/
 x86/
 [Aa][Rr][Mm]/
@@ -348,3 +350,9 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Extra bits
+xkelib/kernelext.exp
+xkelib/kernelext.lib
+xkelib/xamext.exp
+xkelib/xamext.lib
