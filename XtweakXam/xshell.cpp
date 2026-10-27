@@ -41,20 +41,15 @@ int patch_Xshell_start_path(string nPath){
 	startPath=new char[nPath.length()];
 	strcpy(startPath, nPath.c_str());
 
-	OffsetManager om;
-	XSHELLOffsets* offsets = om.getXshellOffsets();
-
-	if(!offsets)
-	{
-		printf("Failed to load xshell offsets...\r\n");
-		return -1;
-	}
-
-	//15574
-	patchInDashStrings((DWORD*)offsets->loc1 , (DWORD)startXex, (DWORD)startPath); 
-	patchInDashStrings((DWORD*)offsets->loc2 , (DWORD)startXex, (DWORD)startPath); 
-	patchInDashStrings((DWORD*)offsets->loc3 , (DWORD)startXex, (DWORD)startPath); 
-	patchInDashStrings((DWORD*)offsets->loc4 , (DWORD)startXex, (DWORD)startPath);
+	/*Search for:
+	lis       r11, ((aDash_xex+0x10000)@h) # "dash.xex"
+	lis       r10, ((aSystemroot+0x10000)@h) # "\\SystemRoot"
+	*/
+	//patch all references
+	patchInDashStrings((DWORD*)loc1 , (DWORD)startXex, (DWORD)startPath); 
+	patchInDashStrings((DWORD*)loc2 , (DWORD)startXex, (DWORD)startPath); 
+	patchInDashStrings((DWORD*)loc3 , (DWORD)startXex, (DWORD)startPath); 
+	patchInDashStrings((DWORD*)loc4 , (DWORD)startXex, (DWORD)startPath);
 	
 	return 1;
 }

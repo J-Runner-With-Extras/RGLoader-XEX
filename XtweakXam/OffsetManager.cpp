@@ -195,71 +195,9 @@ XBDMOffsets xbdm_17502 = {
 	0x91F00A30
 };
 
-/*Search for:
-	lis       r11, ((aDash_xex+0x10000)@h) # "dash.xex"
-	lis       r10, ((aSystemroot+0x10000)@h) # "\\SystemRoot"
-*/
-//patch all references
-
-XSHELLOffsets xshell_14719 = {
-	0x9203BBB4,
-	0x9204A7CC,
-	0x9204756C,
-	0x92060A2C
-};
-XSHELLOffsets xshell_15574 = {
-	0x9203DB1C,
-	0x92049524,
-	0x9204C76C,
-	0x920644A4,
-};
-XSHELLOffsets xshell_16202 = {
-	0x9203EBFC,
-	0x9204A52C,
-	0x9204D74C,
-	0x92065454,
-};
-XSHELLOffsets xshell_16537 = {
-	0x9203EBC4,
-	0x9204A4FC,
-	0x9204D71C,
-	0x92065324,
-};
-XSHELLOffsets xshell_16547 = {
-	0x9203EBC4,
-	0x9204A4FC,
-	0x9204D71C,
-	0x92065324,
-};
-XSHELLOffsets xshell_17150 = {
-	0x9203EC14,
-	0x9204A564,
-	0x9204D734,
-	0x92065454,
-};
-XSHELLOffsets xshell_17349 = {
-	0x9203EC14,
-	0x9204A564,
-	0x9204D734,
-	0x92065454,
-};
-XSHELLOffsets xshell_17489 = {
-	0x9203EC14,
-	0x9204A564,
-	0x9204D734,
-	0x92065454,
-};
-XSHELLOffsets xshell_17502 = {
-	0x9203EC14,
-	0x9204A564,
-	0x9204D734,
-	0x92065454,
-};
-
 const short kernels = 12;
 const short kernelversions[kernels] = {14719, 15574, 16197, 16202, 16537, 16547, 17150, 17349, 17489, 17502, 17511, 17559};
 XBDMOffsets* xbdmoffsets[kernels] = {&xbdm_14719_15574, &xbdm_14719_15574, &xbdm_16197_16202, &xbdm_16197_16202, &xbdm_16537, &xbdm_16547, &xbdm_17150, &xbdm_17349, &xbdm_17489, &xbdm_17502, &xbdm_17502, &xbdm_17502 };
-XSHELLOffsets* xshelloffsets[kernels] = {&xshell_14719, &xshell_15574, NULL, &xshell_16202, &xshell_16537, &xshell_16547, &xshell_17150, &xshell_17349, &xshell_17489, &xshell_17502, &xshell_17502, &xshell_17502 };
 
 OffsetManager::OffsetManager()
 {
@@ -283,18 +221,6 @@ XBDMOffsets* OffsetManager::getXbdmOffsets()
 		if(kernelversions[i] == _kernel)
 		{
 			return xbdmoffsets[i];
-		}
-	}
-	return NULL;
-}
-
-XSHELLOffsets* OffsetManager::getXshellOffsets()
-{
-	for(int i = 0; i < kernels; i++)
-	{
-		if(kernelversions[i] == _kernel)
-		{
-			return xshelloffsets[i];
 		}
 	}
 	return NULL;

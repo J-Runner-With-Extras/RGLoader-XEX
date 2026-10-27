@@ -6,20 +6,18 @@
 #include "stdafx.h"
 #include <xbdm.h>
 #include <stdio.h>
-//#include "xecrypt.h"
 #include "utilities.h"
 #include "OffsetManager.h"
 #include <string>
 
-
 static char* startXex;
 static char* startPath;
 
-//#define XSHELL_SETUP_DRIVE_LETTER_FUNC_ADDR 0x921295E0
-
-//typedef DWORD (*XSHELL_SETUP_DRIVE_LETTER)(DWORD* r3, char* driveletter, DWORD r5);
-
-//static XSHELL_SETUP_DRIVE_LETTER Xshell_Setup_Drive_Letter = (XSHELL_SETUP_DRIVE_LETTER)XSHELL_SETUP_DRIVE_LETTER_FUNC_ADDR;
+// xshell patch offsets for 2.0.17489.0
+#define loc1 0x9203EC14
+#define loc2 0x9204A564
+#define loc3 0x9204D734
+#define loc4 0x92065454
 
 int patch_Xshell_start_path(std::string newpath);
 
