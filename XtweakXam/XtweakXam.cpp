@@ -50,23 +50,15 @@ void patch_BLOCK_LIVE(){
 		char* nullStr = "NO.%sNO.NO\0";
 		DWORD nullStrSize = 18;
 
-		XAMOffsets* offsets = offsetmanager.getXamOffsets();
-		if(!offsets)
-		{
-			printf("Failed to load dns offsets!\r\n");
-			return;
-		}
-
-		//null out xbox live dns tags
-		if(offsets->live_siflc)//FIXME: check the others
-			memcpy( (LPVOID)offsets->live_siflc, (LPCVOID)nullStr, nullStrSize);
-		memcpy( (LPVOID)offsets->live_piflc, (LPCVOID)nullStr, nullStrSize);
-		memcpy( (LPVOID)offsets->live_notice, (LPCVOID)nullStr, nullStrSize);
-		memcpy( (LPVOID)offsets->live_xexds, (LPCVOID)nullStr, nullStrSize);
-		memcpy( (LPVOID)offsets->live_xetgs, (LPCVOID)nullStr, nullStrSize);
-		memcpy( (LPVOID)offsets->live_xeas, (LPCVOID)nullStr, nullStrSize);
-		memcpy( (LPVOID)offsets->live_xemacs, (LPCVOID)nullStr, nullStrSize);
-
+		// null out xbox live dns tags
+		// TODO replace this with a DNS hook like what DashLaunch does
+		memcpy( (LPVOID)0x8161EB14, (LPCVOID)nullStr, nullStrSize); // siflc
+		memcpy( (LPVOID)0x8161EB2C, (LPCVOID)nullStr, nullStrSize); // piflc
+		memcpy( (LPVOID)0x8161EB44, (LPCVOID)nullStr, nullStrSize); // notice
+		memcpy( (LPVOID)0x8161EB58, (LPCVOID)nullStr, nullStrSize); // xexds
+		memcpy( (LPVOID)0x8161EB70, (LPCVOID)nullStr, nullStrSize); // xetgs
+		memcpy( (LPVOID)0x8161EB88, (LPCVOID)nullStr, nullStrSize); // xeas
+		memcpy( (LPVOID)0x8161EB9C, (LPCVOID)nullStr, nullStrSize); // xemacs
 	}
 
 }

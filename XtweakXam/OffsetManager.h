@@ -2,17 +2,6 @@
 
 #include "stdafx.h"
 
-struct XAMOffsets
-{
-	DWORD live_siflc;
-	DWORD live_piflc;
-	DWORD live_notice;
-	DWORD live_xexds;
-	DWORD live_xetgs;
-	DWORD live_xeas;
-	DWORD live_xemacs;
-};
-
 struct XBDMOffsets
 {
 DWORD map_internal_check;  //nop check drivemap internal=1 
@@ -61,7 +50,6 @@ class OffsetManager
 public:
 	OffsetManager();
 	XBDMOffsets* getXbdmOffsets();
-	XAMOffsets* getXamOffsets();
 	SIGNINOffsets* getSigninOffsets();
 	XSHELLOffsets* getXshellOffsets();
 private:
