@@ -292,7 +292,7 @@
     <ClInclude Include="HvExpansion.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="INIReader.h" />
-    <ClInclude Include="OffsetManager.h" />
+    <ClInclude Include="XBDMOffsets.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sysext.h" />
     <ClInclude Include="utilities.h" />
@@ -304,7 +304,6 @@
     <ClCompile Include="HvExpansion.cpp" />
     <ClCompile Include="ini.c" />
     <ClCompile Include="INIReader.cpp" />
-    <ClCompile Include="OffsetManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Xbox 360'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='CodeAnalysis|Xbox 360'">Create</PrecompiledHeader>

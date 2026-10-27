@@ -66,41 +66,34 @@ void patch_BLOCK_LIVE(){
 // Enable USBMASS0-2 in neighborhood
 void patch_MAP_USB(void){
 
-	XBDMOffsets* offsets = offsetmanager.getXbdmOffsets();
-	if(!offsets)
-	{
-		printf("Failed to load xbdm offsets!\n");
-		return;
-	}
-
 	printf(" * Adding extra devices to xbox neighborhood\r\n");
 	{
 		//add usb devices to xbn
-		setmem(offsets->mass0_obname_ptr, offsets->mass0_obname);
-		setmem(offsets->mass1_obname_ptr, offsets->mass1_obname);
-		setmem(offsets->mass2_obname_ptr, offsets->mass2_obname);
-		setmem(offsets->mass0_enable, 0x01);
-		setmem(offsets->mass1_enable, 0x01);
-		setmem(offsets->mass2_enable, 0x01);
+		setmem(xbdm_17489.mass0_obname_ptr, xbdm_17489.mass0_obname);
+		setmem(xbdm_17489.mass1_obname_ptr, xbdm_17489.mass1_obname);
+		setmem(xbdm_17489.mass2_obname_ptr, xbdm_17489.mass2_obname);
+		setmem(xbdm_17489.mass0_enable, 0x01);
+		setmem(xbdm_17489.mass1_enable, 0x01);
+		setmem(xbdm_17489.mass2_enable, 0x01);
 
 		//add flash to xbn
-		setmem(offsets->flash_obname_ptr, offsets->flash_obname);
-		setmem(offsets->flash_enable, 0x01);
+		setmem(xbdm_17489.flash_obname_ptr, xbdm_17489.flash_obname);
+		setmem(xbdm_17489.flash_enable, 0x01);
 
 		//add hdd system ext partition  to xbn
-		setmem(offsets->hddsysext_obname_ptr, offsets->hddsysext_obname);
-		setmem(offsets->hddsysext_enable, 0x01);
+		setmem(xbdm_17489.hddsysext_obname_ptr, xbdm_17489.hddsysext_obname);
+		setmem(xbdm_17489.hddsysext_enable, 0x01);
 
 		//add intusb system ext partition to xbn
-		setmem(offsets->intusbsysext_obname_ptr, offsets->intusbsysext_obname);
-		setmem(offsets->intusbsysext_enable, 0x01);
+		setmem(xbdm_17489.intusbsysext_obname_ptr, xbdm_17489.intusbsysext_obname);
+		setmem(xbdm_17489.intusbsysext_enable, 0x01);
 
 		//add intusb system ext partition to xbn
-		setmem(offsets->hddsysaux_obname_ptr, offsets->hddsysaux_obname);
-		setmem(offsets->hddsysaux_enable, 0x01);
+		setmem(xbdm_17489.hddsysaux_obname_ptr, xbdm_17489.hddsysaux_obname);
+		setmem(xbdm_17489.hddsysaux_enable, 0x01);
 
 		//nop drivemap internal check (always be 1)
-		setmem(offsets->map_internal_check, 0x60000000);
+		setmem(xbdm_17489.map_internal_check, 0x60000000);
 	}
 
 }
@@ -249,7 +242,7 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 			if(rTemp == "NOTFOUND" || (rTemp == "1" || rTemp == "true" || rTemp=="on")){
 				printf("     * Disabling xbox live sign in notice.\n\n");
 
-				// offsets->NoSignNotice
+				// xbdm_17489.NoSignNotice
 				//_HandleError_CLogonErrorChainOfResponsibility in CSigninModel::SignInProfiles  -> 38600000 li r3, 0
 				// This offset is specific to the 2.0.17489.0 RGL flash and the various kernel spoofs based on it
 				setmem(0x9011841C, 0x38600000);
