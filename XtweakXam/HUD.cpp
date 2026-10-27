@@ -1,7 +1,4 @@
 #include "HUD.h"
-//#include "KernelExports.h"
-
-OffsetManager offsetmanager;
 
 HANDLE searchForHandle(const char* mName){
 
@@ -56,13 +53,8 @@ void patchHUDStrings(void){
 		printf("\nERROR: Unable to get module section data from hud.dll\n");
 	}
 
-	HUDOffsets* offsets = offsetmanager.getHudOffsets();
-
-	if(offsets)
-	{
-		replaceHudString(HUD_FamilySettings_String, (DWORD)pSectionData + offsets->FamilySettings_Str1, HUD_FamilySettings_Len);
-		replaceHudString(HUD_FamilySettings_String, (DWORD)pSectionData + offsets->FamilySettings_Str2, HUD_FamilySettings_Len);
-	}
+	replaceHudString(HUD_FamilySettings_String, (DWORD)pSectionData + FamilySettings_Str1, HUD_FamilySettings_Len);
+	replaceHudString(HUD_FamilySettings_String, (DWORD)pSectionData + FamilySettings_Str2, HUD_FamilySettings_Len);
 }
 
 
@@ -73,11 +65,7 @@ DWORD HUD_BootToDashHelper_Hook(DWORD* _XUIOBJ, _XDASHLAUNCHDATA* LaunchData , D
 	printf("      dwCommand: 0x%X\n", LaunchData->dwCommand);
 	printf("      dwUserIndex: 0x%X\n", LaunchData->dwUserIndex);*/
 
-	HUDOffsets* offsets = offsetmanager.getHudOffsets();
-	if(!offsets)
-		return -1;
-
-	if(LaunchData->dwCommand==(DWORD)offsets->LaunchData_FamilySettings){
+	if(LaunchData->dwCommand==(DWORD)LaunchData_FamilySettings){
 		printf("\n[RGLOADER]: Jumping back to xshell!\n");
 		//printf("[RGLOADER]: System thread, attempting to launch xshell.\n");
 		XSetLaunchData( NULL, 0 );
@@ -91,7 +79,7 @@ DWORD HUD_BootToDashHelper_Hook(DWORD* _XUIOBJ, _XDASHLAUNCHDATA* LaunchData , D
 	}
 	else {
 		
-		return ((HUD_BOOTTODASHHELPER)offsets->BootToDashHelper_Func)(_XUIOBJ, LaunchData , cstr, r6,  r7);
+		return ((HUD_BOOTTODASHHELPER)BootToDashHelper_Func)(_XUIOBJ, LaunchData , cstr, r6,  r7);
 	}
 }
 
@@ -99,19 +87,15 @@ DWORD HUD_BootToDashHelper_Hook(DWORD* _XUIOBJ, _XDASHLAUNCHDATA* LaunchData , D
 
 BOOL HUDPatchInJump(DWORD destination, BOOL linked=false){
 
-	HUDOffsets* offsets = offsetmanager.getHudOffsets();
-	if(!offsets)
-		return -1;
-
-	setmemdm( offsets->BootToDashHelper_Jump, makeBranch( offsets->BootToDashHelper_Jump, (offsets->FamilySettings_LaunchStr)+0x4, true));
+	setmemdm( BootToDashHelper_Jump, makeBranch( BootToDashHelper_Jump, (FamilySettings_LaunchStr)+0x4, true));
 	//setmem( HUD_BootToDashHelper_Jump, 0x60000000);
 
 	//setmem(HUD_FamilySettings_LaunchStr, 0x4800001C);
-	setmemdm( offsets->FamilySettings_LaunchStr, 0x4E800020); //blr
+	setmemdm( FamilySettings_LaunchStr, 0x4E800020); //blr
 	BYTE data[0x10];
 	patchInJump((PDWORD)data, (DWORD)destination, linked);
 	HRESULT hr;
-	hr = (HRESULT)memcpy((PDWORD)((offsets->FamilySettings_LaunchStr)+4), (LPCVOID)data, 0x10);
+	hr = (HRESULT)memcpy((PDWORD)((FamilySettings_LaunchStr)+4), (LPCVOID)data, 0x10);
 	//return hr;
 	return 1;
 }

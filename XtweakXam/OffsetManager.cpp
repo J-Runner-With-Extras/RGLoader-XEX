@@ -375,78 +375,6 @@ XSHELLOffsets xshell_17502 = {
 	0x9204D734,
 	0x92065454,
 };
-HUDOffsets hud_14719 = {
-	0x913F1B58, //FamilySettings_LaunchStr looks like: lis       r11, aGuideSettingsF@h # "Guide/Settings/FamilySettings/"
-	0x913E6E9C, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E6CD0, //HUD_BootToDashHelper_Func
-	0x10152, //FamilySettings_Str1
-	0x10157, //FamilySettings_Str2
-};
-HUDOffsets hud_15574 = {
-	0x913F1BC0, //FamilySettings_LaunchStr
-	0x913E6EF4, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E6D28, //HUD_BootToDashHelper_Func
-	0x10033, //FamilySettings_Str1
-	0x1035A, //FamilySettings_Str2
-};
-HUDOffsets hud_16202 = {
-	0x913F0124, //FamilySettings_LaunchStr
-	0x913E64E0, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E6318, //HUD_BootToDashHelper_Func
-	0xFF12, //FamilySettings_Str1
-	0x10239, //FamilySettings_Str2
-};
-HUDOffsets hud_16537 = {
-	0x913F00A4, //FamilySettings_LaunchStr
-	0x913E6340, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E6168, //HUD_BootToDashHelper_Func
-	0x119C7, //FamilySettings_Str1
-	0x11F11, //FamilySettings_Str2
-};
-HUDOffsets hud_16547 = {
-	0x913F00A4, //FamilySettings_LaunchStr
-	0x913E6340, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E6168, //HUD_BootToDashHelper_Func
-	0x119C7, //FamilySettings_Str1
-	0x11F11, //FamilySettings_Str2
-};
-HUDOffsets hud_17150 = {
-	0x913F00A4, //FamilySettings_LaunchStr
-	0x913E6340, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E6168, //HUD_BootToDashHelper_Func
-	0x11965, //FamilySettings_Str1
-	0x11EAF, //FamilySettings_Str2
-};
-HUDOffsets hud_17349 = {
-	0x913F00A4, //FamilySettings_LaunchStr
-	0x913E6340, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E6168, //HUD_BootToDashHelper_Func
-	0x11965, //FamilySettings_Str1
-	0x11EAF, //FamilySettings_Str2
-};
-HUDOffsets hud_17489 = {
-	0x913F12D4, //FamilySettings_LaunchStr
-	0x913E7498, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E72C0, //HUD_BootToDashHelper_Func
-	0x119B8, //FamilySettings_Str1
-	0x11F02, //FamilySettings_Str2
-};
-HUDOffsets hud_17502 = {
-	0x913F12D4, //FamilySettings_LaunchStr
-	0x913E7498, //BootToDashHelper_Jump 
-	0x14, //LaunchData_FAMILYSETTINGS
-	0x913E72C0, //HUD_BootToDashHelper_Func
-	0x119B8, //FamilySettings_Str1
-	0x11F02, //FamilySettings_Str2
-};
 
 const short kernels = 12;
 const short kernelversions[kernels] = {14719, 15574, 16197, 16202, 16537, 16547, 17150, 17349, 17489, 17502, 17511, 17559};
@@ -454,7 +382,6 @@ XBDMOffsets* xbdmoffsets[kernels] = {&xbdm_14719_15574, &xbdm_14719_15574, &xbdm
 XAMOffsets* xamoffsets[kernels] = {&xam_14719, &xam_15574, NULL, &xam_16202, &xam_16537, &xam_16547, &xam_17150, &xam_17349, &xam_17489, &xam_17502, &xam_17502, &xam_17559 };
 SIGNINOffsets* signinoffsets[kernels] = {&signin_14719, &signin_15574, NULL, &signin_16202, &signin_16537, &signin_16547, &signin_17150, &signin_17349, &signin_17489, &signin_17502, &signin_17502, &signin_17502 };
 XSHELLOffsets* xshelloffsets[kernels] = {&xshell_14719, &xshell_15574, NULL, &xshell_16202, &xshell_16537, &xshell_16547, &xshell_17150, &xshell_17349, &xshell_17489, &xshell_17502, &xshell_17502, &xshell_17502 };
-HUDOffsets* hudoffsets[kernels] = {&hud_14719, &hud_15574, NULL, &hud_16202, &hud_16537, &hud_16547, &hud_17150, &hud_17349, &hud_17489, &hud_17502, &hud_17502, &hud_17502 };
 
 OffsetManager::OffsetManager()
 {
@@ -514,18 +441,6 @@ XSHELLOffsets* OffsetManager::getXshellOffsets()
 		if(kernelversions[i] == _kernel)
 		{
 			return xshelloffsets[i];
-		}
-	}
-	return NULL;
-}
-
-HUDOffsets* OffsetManager::getHudOffsets()
-{
-	for(int i = 0; i < kernels; i++)
-	{
-		if(kernelversions[i] == _kernel)
-		{
-			return hudoffsets[i];
 		}
 	}
 	return NULL;

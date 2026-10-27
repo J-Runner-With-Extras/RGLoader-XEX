@@ -56,18 +56,6 @@ struct XSHELLOffsets
 	DWORD loc1, loc2, loc3, loc4;
 };
 
-struct HUDOffsets
-{
-	DWORD FamilySettings_LaunchStr;
-	DWORD BootToDashHelper_Jump;
-	DWORD LaunchData_FamilySettings;
-	DWORD BootToDashHelper_Func;
-	//Use xextool to dump resources from hud.xex.  Search for "Family Settings"
-	//NOTE: New string cannot be longer than the old one
-	DWORD FamilySettings_Str1;
-	DWORD FamilySettings_Str2;
-};
-
 class OffsetManager
 {
 public:
@@ -76,7 +64,6 @@ public:
 	XAMOffsets* getXamOffsets();
 	SIGNINOffsets* getSigninOffsets();
 	XSHELLOffsets* getXshellOffsets();
-	HUDOffsets* getHudOffsets();
 private:
 	short getKernelVersion();
 	short _kernel;
