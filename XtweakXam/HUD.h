@@ -13,7 +13,11 @@
 
 int patch_HUD_ReturnToXshell(void);
 
-//static HUD_FILLLAUNCHDATA HUD_FillLaunchData = (HUD_FILLLAUNCHDATA)HUD_FillLaunchData_Func;*/
+// HUD constants for the 2.0.17489.0 flash
+#define FamilySettings_LaunchStr 0x913F12D4
+#define BootToDashHelper_Jump 0x913E7498
+#define LaunchData_FamilySettings 0x14
+#define BootToDashHelper_Func 0x913E72C0
 #define FamilySettings_Str1 0x119B8
 #define FamilySettings_Str2 0x11F02
 
