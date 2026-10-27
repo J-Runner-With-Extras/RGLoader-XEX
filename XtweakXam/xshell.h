@@ -7,7 +7,6 @@
 #include <xbdm.h>
 #include <stdio.h>
 #include "utilities.h"
-#include "OffsetManager.h"
 #include <string>
 
 static char* startXex;

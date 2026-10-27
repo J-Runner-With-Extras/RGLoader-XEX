@@ -289,7 +289,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HUD.h" />
-    <ClInclude Include="HvExpansion.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="XBDMOffsets.h" />
@@ -301,7 +300,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HUD.cpp" />
-    <ClCompile Include="HvExpansion.cpp" />
     <ClCompile Include="ini.c" />
     <ClCompile Include="INIReader.cpp" />
     <ClCompile Include="stdafx.cpp">

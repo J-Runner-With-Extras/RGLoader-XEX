@@ -10,15 +10,13 @@
 #include "xam.h"
 #include "HUD.h"
 #include "xshell.h"
-#include "HvExpansion.h"
-#include "OffsetManager.h"
+#include "XBDMOffsets.h"
 #include "sysext.h"
 using namespace std;
 
 static bool fKeepMemory=true;
 static bool fExpansionEnabled = false;
 static INIReader* reader;
-static OffsetManager offsetmanager;
 
 #define setmem(addr, data) { DWORD d = data; memcpy((LPVOID)addr, &d, 4);}
 
@@ -288,7 +286,7 @@ int patch_apply_binary(string filepath){
 
 	FILE* patches;
 	BYTE* buffer;
-	long size=0, patchesApplied=0;
+	DWORD size=0, patchesApplied=0;
 
 	patches= fopen(filepath.c_str(), "rb");
 	if(!patches) return false;
@@ -314,7 +312,7 @@ int patch_apply_binary(string filepath){
 	while(dest!=0xFFFFFFFF && offset<size){
 		DWORD numPatches = *(DWORD*)&buffer[offset];
 		offset+=4;
-		for(int i=0; i<numPatches; i++, offset+=4, dest+=4){
+		for(DWORD i=0; i<numPatches; i++, offset+=4, dest+=4){
 			//printf("     %08X  -> 0x%08X\n", dest, *(DWORD*)&buffer[offset]);
 			setmem(dest, *(DWORD*)&buffer[offset]);
 		}
@@ -378,8 +376,12 @@ VOID loadPlugins(){
 
 BOOL Initialize(HANDLE hModule){
 
-	printf("===RGLoader Runtime Patcher - Version 02===\r\n\r\n");
+	printf("===RGLoader Runtime Patcher - Kernel 17489 + spoofs===\r\n\r\n");
 
+	printf(" * Reverting XBDM hard drive load patch\n");
+	setmem(0x801D0824,0x80041BA0);
+
+	printf(" * Mounting devices\n");
 	Mount("\\Device\\Harddisk0\\Partition1", "\\System??\\Hdd:");
 	Mount("\\Device\\Harddisk0\\Partition1", "\\System??\\HDD:");
 	Mount("\\Device\\Mass0", "\\System??\\Mass0:");
@@ -388,11 +390,8 @@ BOOL Initialize(HANDLE hModule){
 	Mount("\\Device\\Flash", "\\System??\\sfcx:");
 	Mount("\\SystemRoot", "\\System??\\Root:");
 
-	// EXPANSION!
-	//fExpansionEnabled = installExpansion();
+	printf(" * Parsing rgloader.ini\n");
 
-
-	
 	reader = new INIReader("Mass0:\\rgloader.ini");
 	if(reader->ParseError() < 0) reader = new INIReader("Mass1:\\rgloader.ini");
 	if(reader->ParseError() < 0) reader = new INIReader("Mass2:\\rgloader.ini");
@@ -500,15 +499,6 @@ BOOL Initialize(HANDLE hModule){
 		Xam_Profile_Crypto_Hook_Setup();
 	}
 
-	if(fExpansionEnabled)
-	{
-		BOOL ret = loadKV("Mass0:\\rgkv.bin");
-		if(!ret) ret = loadKV("Mass1:\\rgkv.bin");
-		if(!ret) ret = loadKV("Mass2:\\rgkv.bin");
-		if(!ret) ret = loadKV("Hdd:\\rgkv.bin");
-	}
-
-	
 	return TRUE;
 }
 
@@ -517,6 +507,14 @@ BOOL Initialize(HANDLE hModule){
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
  {
 	if(dwReason == DLL_PROCESS_ATTACH){
+
+		if(XboxKrnlVersion->Build < 17489)
+		{
+			printf("This version of RGLoader.xex is unsupported on kernel versions earlier than 17489.\n");
+			printf("No patches will be applied.\n\n");
+			return true;
+		}
+
 		Initialize(hModule);
 
 		//Sleep(500);
