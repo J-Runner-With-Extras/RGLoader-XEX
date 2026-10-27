@@ -195,35 +195,6 @@ XBDMOffsets xbdm_17502 = {
 	0x91F00A30
 };
 
-//_HandleError_CLogonErrorChainOfResponsibility in CSigninModel::SignInProfiles  -> 38600000 li r3, 0
-SIGNINOffsets signin_14719 = {
-	0x90114E68
-};
-SIGNINOffsets signin_15574 = {
-	0x901153E8
-};
-SIGNINOffsets signin_16202 = {
-	0x9011752C
-};
-SIGNINOffsets signin_16537 = {
-	0x9011846C
-};
-SIGNINOffsets signin_16547 = {
-	0x9011846C
-};
-SIGNINOffsets signin_17150 = {
-	0x9011841C
-};
-SIGNINOffsets signin_17349 = {
-	0x9011841C
-};
-SIGNINOffsets signin_17489 = {
-	0x9011841C
-};
-SIGNINOffsets signin_17502 = {
-	0x9011841C
-};
-
 /*Search for:
 	lis       r11, ((aDash_xex+0x10000)@h) # "dash.xex"
 	lis       r10, ((aSystemroot+0x10000)@h) # "\\SystemRoot"
@@ -288,7 +259,6 @@ XSHELLOffsets xshell_17502 = {
 const short kernels = 12;
 const short kernelversions[kernels] = {14719, 15574, 16197, 16202, 16537, 16547, 17150, 17349, 17489, 17502, 17511, 17559};
 XBDMOffsets* xbdmoffsets[kernels] = {&xbdm_14719_15574, &xbdm_14719_15574, &xbdm_16197_16202, &xbdm_16197_16202, &xbdm_16537, &xbdm_16547, &xbdm_17150, &xbdm_17349, &xbdm_17489, &xbdm_17502, &xbdm_17502, &xbdm_17502 };
-SIGNINOffsets* signinoffsets[kernels] = {&signin_14719, &signin_15574, NULL, &signin_16202, &signin_16537, &signin_16547, &signin_17150, &signin_17349, &signin_17489, &signin_17502, &signin_17502, &signin_17502 };
 XSHELLOffsets* xshelloffsets[kernels] = {&xshell_14719, &xshell_15574, NULL, &xshell_16202, &xshell_16537, &xshell_16547, &xshell_17150, &xshell_17349, &xshell_17489, &xshell_17502, &xshell_17502, &xshell_17502 };
 
 OffsetManager::OffsetManager()
@@ -313,30 +283,6 @@ XBDMOffsets* OffsetManager::getXbdmOffsets()
 		if(kernelversions[i] == _kernel)
 		{
 			return xbdmoffsets[i];
-		}
-	}
-	return NULL;
-}
-
-XAMOffsets* OffsetManager::getXamOffsets()
-{
-	for(int i = 0; i < kernels; i++)
-	{
-		if(kernelversions[i] == _kernel)
-		{
-			return xamoffsets[i];
-		}
-	}
-	return NULL;
-}
-
-SIGNINOffsets* OffsetManager::getSigninOffsets()
-{
-	for(int i = 0; i < kernels; i++)
-	{
-		if(kernelversions[i] == _kernel)
-		{
-			return signinoffsets[i];
 		}
 	}
 	return NULL;

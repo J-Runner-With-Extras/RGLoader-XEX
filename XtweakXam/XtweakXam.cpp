@@ -248,15 +248,11 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 			rTemp = reader->Get("Config", "No_Sign_Notice", "NOTFOUND");
 			if(rTemp == "NOTFOUND" || (rTemp == "1" || rTemp == "true" || rTemp=="on")){
 				printf("     * Disabling xbox live sign in notice.\n\n");
-				SIGNINOffsets* offsets = offsetmanager.getSigninOffsets();
-				if(offsets != NULL)
-				{
-					setmem(offsets->NoSignNotice, 0x38600000);
-				}
-				else
-				{
-					printf("Failed to load signin offsets!\r\n");
-				}
+
+				// offsets->NoSignNotice
+				//_HandleError_CLogonErrorChainOfResponsibility in CSigninModel::SignInProfiles  -> 38600000 li r3, 0
+				// This offset is specific to the 2.0.17489.0 RGL flash and the various kernel spoofs based on it
+				setmem(0x9011841C, 0x38600000);
 			}
 		
 		}

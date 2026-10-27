@@ -35,11 +35,6 @@ DWORD hddsysaux_obname; //device name obj
 
 };
 
-struct SIGNINOffsets
-{
-	DWORD NoSignNotice;
-};
-
 struct XSHELLOffsets
 {
 	DWORD loc1, loc2, loc3, loc4;
@@ -50,7 +45,6 @@ class OffsetManager
 public:
 	OffsetManager();
 	XBDMOffsets* getXbdmOffsets();
-	SIGNINOffsets* getSigninOffsets();
 	XSHELLOffsets* getXshellOffsets();
 private:
 	short getKernelVersion();
