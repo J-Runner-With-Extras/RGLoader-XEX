@@ -33,6 +33,9 @@ struct XBDMOffsets
 	DWORD hddsysaux_enable;
 	DWORD hddsysaux_obname; //device name obj
 
+	DWORD hddx_slot; //unused drive slot (\Badpath) reused for HDDX
+	DWORD hddx_obname; //"\Device\Harddisk0\SystemPartition" in xbdm .rdata
+
 };
 
 // Offsets for adding additional drives to xbox neighborhood in 2.0.17489.0
@@ -59,5 +62,7 @@ XBDMOffsets xbdm_17489 =
 	0x91F00A9C,
 	0x91F97070,
 	(0x91F97070 + 0x28) ,
-	0x91F00A30
+	0x91F00A30,
+	0x91F96EB8, //hddx (\Badpath slot)
+	0x91F0094C
 };
