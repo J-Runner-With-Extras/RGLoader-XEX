@@ -14,13 +14,12 @@ char hddSysEx[] = "\\Device\\Harddisk0\\SystemExtPartition\\";
 char hddSysAux[] = "\\Device\\Harddisk0\\SystemAuxPartition\\";
 
 
-//#define MANIFEST_FILE		"Game:\\$SystemUpdate\\system.manifest"
 #define MANIFEST            "\\system.manifest"
-//#define MANIFEST_BASE		"Game:\\$SystemUpdate\\"
 #define DESTINATION_BASE	"USEP:\\"
 #define PACKAGE_BASE		"Content\\0000000000000000\\" //FFFE07DF\\00008000"
 
-typedef struct _ITEM_INFO {
+typedef struct _ITEM_INFO
+{
 	string source;
 	string dest;
 	PBYTE data;
@@ -53,7 +52,9 @@ BOOL checkZeros(void* vbuf, u32 len)
 	for(i = 0; i<len; i++)
 	{
 		if(buf[i] != 0x0)
+		{
 			return FALSE;
+		}
 	}
 	return TRUE;
 }
@@ -79,17 +80,15 @@ u8* readFileToBuf(const char* fname, int* len)
 	if(fin != NULL)
 	{
 		int sz = getFileSize(fin);
-		//		DbgPrint("loading file %s 0x%x bytes...", fname, sz);
 		buf = (unsigned char*)malloc(sz);
 		if(buf != NULL)
 		{
 			fread(buf, sz, 1, fin);
 			if(len != NULL)
+			{
 				*len = sz;
-			// 			DbgPrint("done!\n");
+			}
 		}
-		// 		else
-		// 			DbgPrint("failed to allocate 0x%x bytes!\n", sz);
 		fclose(fin);
 	}
 	return buf;
@@ -136,14 +135,11 @@ int getManifestString(BYTE* sdat, char* dest)
 		dest[len] = 0x0;
 	}
 	else
+	{
 		DbgPrint("err len = 0!\n");
+	}
 	return len;
 }
-
-//BYTE dataHash[0x14]; // 0x38
-//DWORD dwContentType; // 0x4C ie 0x00008000
-//DWORD dwContentTitleId; // 0x50 ie 0xFFFE07DF
-//DWORD dwXContItemListOff; // 0x5C num items in container, followed by entry offsets for each item
 
 BOOL loadVerifyFile(PITEM_INFO citm, BYTE* hdat)
 {
@@ -165,18 +161,10 @@ BOOL loadVerifyFile(PITEM_INFO citm, BYTE* hdat)
 					dprintf(" OK");
 					return TRUE;
 				}
-				//else
-				//	DbgPrint("file corrupt, hash check FAIL!!\n");
 			}
-			//else
-			//	DbgPrint("file length 0x%x does not match 0x%x!\n", len, citm->len);
 			delete[] citm->data;
 		}
-		//else
-		//	DbgPrint("file hash check FAIL! could not read file!\n");
 	}
-	//else
-	//	DbgPrint("file hash check FAIL! input len is 0!\n");
 	dprintf(" FAILED!\n");
 	errcnt++;
 	return FALSE;
@@ -193,10 +181,7 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 	memcpy(tcon, &conData[sizeof(XCONTENT_HEADER)], conDataStart-sizeof(XCONTENT_HEADER));
 	XeCryptSha(tcon, conDataStart-sizeof(XCONTENT_HEADER), NULL, 0, NULL, 0, hashout, XECRYPT_SHA_DIGEST_SIZE);
 	delete[] tcon;
-	// 	display_buffer_hex(xcfh->Header.ContentId, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
-	// 	display_buffer_hex(hashout, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
 	// checking header hash
-//	DbgPrint("head hash:"); display_hash(xcfh->Header.ContentId, 0x14);
 
 	if(memcmp(xcfh->Header.ContentId, hashout, XECRYPT_SHA_DIGEST_SIZE) == 0)
 	{
@@ -205,11 +190,6 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 		PSTF_HASH_BLOCK hb = (PSTF_HASH_BLOCK)&conData[conDataStart];
 		PSTF_HASH_BLOCK mhb = NULL;
 		dent = (PSTF_DIRECTORY_ENTRY)&conData[currOffset];
-		//DbgPrint("header hash is OK, checking content hashes...\n");
- 		//XeCryptSha(&conData[conDataStart], 0x1000, NULL, 0, NULL, 0, hashout, XECRYPT_SHA_DIGEST_SIZE);
- 		//DbgPrint("master table hash (0x%x):", conDataStart);
- 		//display_buffer_hex(hashout, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
- 		//DbgPrint("\n");
 		// checking fragment hashes
 		while(contProcess)
 		{
@@ -227,12 +207,8 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 					XeCryptSha(tdat, 0x1000, NULL, 0, NULL, 0, hashout, XECRYPT_SHA_DIGEST_SIZE);
 					if(memcmp(hashout, hb->Entries[i].Hash, XECRYPT_SHA_DIGEST_SIZE))
 					{
-						//DbgPrint("FAIL entry 0x%x block offset 0x%x level 0x%x\n", i, currOffset, u32Rev(hb->Entries[i].LevelAsULONG));
-						//fgetc(stdin);
 						return FALSE;
 					}
-					//else
-					//	DbgPrint("success entry 0x%x block offset 0x%x level 0x%x\n", i, currOffset, u32Rev(hb->Entries[i].LevelAsULONG));
 					blockInfo[currBlock] = currOffset;
 					currBlock++;
 					currOffset += 0x1000;
@@ -246,10 +222,6 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 			{
 				hb = (PSTF_HASH_BLOCK)&conData[currOffset];
 				j++;
-// 				XeCryptSha(&conData[currOffset], 0x1000, NULL, 0, NULL, 0, hashout, XECRYPT_SHA_DIGEST_SIZE);
-// 				DbgPrint("table %d hash (0x%x):", j, currOffset);
-// 				display_buffer_hex(hashout, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
-// 				DbgPrint("\n");
 
 				if(hb->Entries[0].LevelAsULONG == 0)
 				{
@@ -260,10 +232,6 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 					XeCryptSha(tdat, 0x1000, NULL, 0, NULL, 0, hashout, XECRYPT_SHA_DIGEST_SIZE);
 					if(memcmp(xcfh->Meta.Volume.StfsVolumeDescriptor.RootHash, hashout, XECRYPT_SHA_DIGEST_SIZE))
 					{
-// 						display_buffer_hex(xcfh->Meta.Volume.StfsVolumeDescriptor.RootHash, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
-// 						display_buffer_hex(hashout, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
-// 						DbgPrint("FAIL StfsVolumeDescriptor.RootHash\n");
-// 						fgetc(stdin);
 						return FALSE;
 					}
 
@@ -271,10 +239,6 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 					XeCryptSha(tdat, 0x1000, NULL, 0, NULL, 0, hashout, XECRYPT_SHA_DIGEST_SIZE);
 					if(memcmp(hashout, mhb->Entries[0].Hash, XECRYPT_SHA_DIGEST_SIZE))
 					{
-// 						display_buffer_hex(mhb->Entries[0].Hash, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
-// 						display_buffer_hex(hashout, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
-// 						DbgPrint("FAIL mhb->Entries[0]\n");
-// 						fgetc(stdin);
 						return FALSE;
 					}
 
@@ -289,8 +253,6 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 					XeCryptSha(tdat, 0x1000, NULL, 0, NULL, 0, hashout, XECRYPT_SHA_DIGEST_SIZE);
 					if(memcmp(hashout, mhb->Entries[j].Hash, XECRYPT_SHA_DIGEST_SIZE))
 					{
-						// 						DbgPrint("FAIL mhb->Entries[%d]\n", j);
-						// 						fgetc(stdin);
 						return FALSE;
 					}
 				}
@@ -298,8 +260,6 @@ BOOL conCheckHashes(PXCONTENT_FULL_HEADER xcfh, BYTE* conData, DWORD conDataStar
 				currOffset += 0x1000;
 			}
 		}
-		//display_buffer_hex(hashout, XECRYPT_SHA_DIGEST_SIZE, VERB_LV0);
-		//DbgPrint("content hashes seem OK, everything looks good!\n");
 
 		return TRUE;
 	}
@@ -311,46 +271,26 @@ BOOL conCheckHeader(BYTE* conData, DWORD conDataLen, unsigned char* headHash)
 	u32* blockInfo;
 	u32 conDataStart;
 	PXCONTENT_FULL_HEADER xcfh = (PXCONTENT_FULL_HEADER)conData;
-	//u32 version = xcfh->Content.Installer.MetaData.SystemUpdate.NewVersion;
-	conDataStart = XCONTENT_ROUND_UP_TO_ALIGNMENT(xcfh->Header.SizeOfHeaders);//((u32Rev(xcfh->Header.SizeOfHeaders))+0xFFF)&~0xFFF;
-// 	DbgPrint("content type: %X\n", u32Rev(xcfh->Meta.ContentType));
-// 	DbgPrint("content size: %016I64x\n", u64Rev(xcfh->Meta.ContentSize.QuadPart));
-// 	DbgPrint("content tid : %X\n", u32Rev(xcfh->Meta.ExecutionId.Tid.TitleID));
-// 	DbgPrint("content ctyp: %X\n", u32Rev(xcfh->Meta.VolumeType));
-// 	DbgPrint("meta type   : %X\n", u32Rev(xcfh->Content.Installer.MetaDataType));
-// 	DbgPrint("dataStart   : %X\n", conDataStart);
-//	DbgPrint("version     : %X (%d.%d.%04d.%02d)\n", version, (version>>28)&0xF, (version>>24)&0xF, (version>>8)&0xFFFF, version&0xFF);
-	//if(xcfh->Content.Installer.MetaDataType == INSTALLER_METADATA_TYPE_SYSTEM_UPDATE)
-	//{
-	//	if(xcfh->Meta.ContentType == 0xB0000)
-	//	{
-	//		if(xcfh->Meta.ExecutionId.Tid.TitleID == 0xFFFE07D1)
+	conDataStart = XCONTENT_ROUND_UP_TO_ALIGNMENT(xcfh->Header.SizeOfHeaders);
+	u32 numBlocks = (conDataLen/0x1000)+1;
+	blockInfo = (u32*)malloc((numBlocks*4));
+	if(blockInfo != NULL)
+	{
+		if(headHash)
+		{
+			if(!checkZeros(headHash, 0x14))
 			{
-				u32 numBlocks = (conDataLen/0x1000)+1;
-				blockInfo = (u32*)malloc((numBlocks*4));
-				if(blockInfo != NULL)
+				if(memcmp(xcfh->Header.ContentId, headHash, 0x14) != 0)
 				{
-					//DbgPrint("header seems valid, version %d.%d.%04d.%02d\n", (version>>28)&0xF, (version>>24)&0xF, (version>>8)&0xFFFF, version&0xFF);
-					if(headHash)
-					{
-						if(!checkZeros(headHash, 0x14))
-						{
-							if(memcmp(xcfh->Header.ContentId, headHash, 0x14) != 0)
-							{
-								//DbgPrint("manifest hash does not match container header!\n");
-								return FALSE;
-							}
-							//DbgPrint("manifest hash matches container header!\n");
-						}
-					}
-					if(conCheckHashes(xcfh, conData, conDataStart, conDataLen, blockInfo))
-					{
-						return TRUE;
-					}
+					return FALSE;
 				}
 			}
-	//	}
-	//}
+		}
+		if(conCheckHashes(xcfh, conData, conDataStart, conDataLen, blockInfo))
+		{
+			return TRUE;
+		}
+	}
 	return FALSE;
 }
 
@@ -360,7 +300,6 @@ BOOL loadVerifyContainer(PITEM_INFO citm, unsigned char* hash)
 	{
 		DWORD len;
 		citm->data = ReadFileToBuf(citm->source.c_str(), &len);
-		//DbgPrint("checking container %s\n", citm->source.c_str());
 		if(citm->data != NULL)
 		{
 			if(len == citm->len)
@@ -368,21 +307,12 @@ BOOL loadVerifyContainer(PITEM_INFO citm, unsigned char* hash)
 				if(conCheckHeader(citm->data, citm->len, hash))
 				{
 					dprintf(" OK");
-					//DbgPrint("container mount and manifest hash verified as OK\n");
 					return TRUE;
 				}
-				//else
-				//	DbgPrint("container FAIL, may be corrupt!\n");
 			}
-			//else
-			//	DbgPrint("file length 0x%x does not match 0x%x!\n", len, citm->len);
 			delete[] citm->data;
 		}
-		//else
-		//	DbgPrint("file hash check FAIL! could not read file!\n");
 	}
-	//else
-	//	DbgPrint("file hash check FAIL! input len is 0!\n");
 	errcnt++;
 	dprintf(" FAILED!\n");
 	return FALSE;
@@ -401,73 +331,15 @@ BOOL verifyManifestItems(BYTE* bodydat, int maxlen, BOOL verifyOnly, char* manif
 		PSU_ITEM_ENTRY itm;
 		DWORD ver = 0;
 		itm = &bod->items.ents[i];
-		//DbgPrint("\n --- item %d of %d ---\n", i+1, bod->items.dwNumEntries);
-		//DbgPrint("offset: %08x\n", (BYTE*)itm-bodydat);
 		if(itm->dwSrcNameOff != 0)
 		{
 			getManifestString(&bodydat[itm->dwSrcNameOff], sbuf);
 			litm.source = manifest_base;
 			litm.source += sbuf;
 			dprintf("\r\n%d - %s", i+1, sbuf);
-			//DbgPrint("\tsource name  : %s\n", litm.source.c_str());
 		}
 		litm.len = itm->dwFileSize;
 		ver = getBe32(&bodydat[itm->dwVersionOff]);
-		//if(itm->dwIntNameOff != 0)
-		//{
-		//	getManifestString(&bodydat[itm->dwIntNameOff], sbuf);
-		//	DbgPrint("\tinternal name: %s\n", sbuf);
-		//}
-		//if(itm->dwDestNameOff != 0)
-		//{
-		//	getManifestString(&bodydat[itm->dwDestNameOff], sbuf);
-		//	DbgPrint("\tdest name    : %s\n", sbuf);
-		//}
-		//if(itm->dwVersionOff != 0)
-		//{
-		//	ver = getBe32(&bodydat[itm->dwVersionOff]);
-		//	DbgPrint("\tversion      : %d.%d.%d.%d\n", (ver>>28)&0xF, (ver>>24)&0xF, (ver>>8)&0xFFFF, ver&0xF);
-		//}
-		//DbgPrint("\ttype         : %d ", itm->dwEntryType);
-		//if(itm->dwEntryType == 2)
-		//	DbgPrint("(xcontent)\n");
-		//else if (itm->dwEntryType == 3)
-		//	DbgPrint("(file)\n");
-		//else
-		//	DbgPrint("(unknown)\n");
-		//DbgPrint("\tsize         : 0x%x (%d)\n", itm->dwFileSize, itm->dwFileSize);
-		//if(itm->dwFlags != 0)
-		//{
-		//	DbgPrint("\tflags        : 0x%08x\n", itm->dwFlags);
-		//}
-		//if(itm->dwEntryType == 2)
-		//{
-		//	//u32 utempl = itm->dwXContItemListOff;
-		//	DbgPrint("\tContentType  : 0x%08x\n", itm->dwContentType);// 0x4C ie 0x00008000
-		//	DbgPrint("\tTitleId      : 0x%08x\n", itm->dwContentTitleId);// 0x50 ie 0xFFFE07DF
-		//	//DbgPrint("\tContItemList : 0x%08x\n", utempl);// 0x5C num items in container, followed by entry offsets for each item
-		//	//DbgPrint("\tContItemNum  : %d\n", getBe32(&bodydat[utempl]));
-		//	//DbgPrint("\tdataHash     : "); display_hash(itm->dataHash, 20);
-		//	//DbgPrint("\tcontHash     : "); display_hash(itm->contHash, 20); // corresponds to container hash at offset 0x32C
-		//}
-		//else
-		//{
-		//	if(itm->dwContentType != 0)
-		//		DbgPrint("\tdwContentType is nonzero, 0x%08x\n", itm->dwContentType);
-		//	if(itm->dwContentTitleId != 0)
-		//		DbgPrint("\tdwContentTitleId is nonzero, 0x%08x\n", itm->dwContentTitleId);
-		//	if(itm->dwXContItemListOff != 0)
-		//		DbgPrint("\tdwXContItemListOff is nonzero, 0x%08x\n", itm->dwXContItemListOff);
-		//}
-
-		//if(itm->dwPad1 != 0)
-		//	DbgPrint("\tdwPad1 is nonzero, 0x%08x\n", itm->dwPad1);
-		//if(itm->dwPad2 != 0)
-		//	DbgPrint("\tdwPad2 is nonzero, 0x%08x\n", itm->dwPad2);
-		//if(itm->dwPad3 != 0)
-		//	DbgPrint("\tdwPad3 is nonzero, 0x%08x\n", itm->dwPad3);
-		//if(itm->dwPad4 != 0)
-		//	DbgPrint("\tdwPad4 is nonzero, 0x%08x\n", itm->dwPad4);
 
 		if(itm->dwSrcNameOff != 0)
 		{
@@ -485,7 +357,9 @@ BOOL verifyManifestItems(BYTE* bodydat, int maxlen, BOOL verifyOnly, char* manif
 						inf.push_back(litm);
 					}
 					else if(!verifyOnly) // abort so as to not waste time
+					{
 						return FALSE;
+					}
 					break;
 				case 3: // file
 					if(loadVerifyFile(&litm, itm->dataHash))
@@ -495,23 +369,14 @@ BOOL verifyManifestItems(BYTE* bodydat, int maxlen, BOOL verifyOnly, char* manif
 						inf.push_back(litm);
 					}
 					else if(!verifyOnly) // abort so as to not waste time
+					{
 						return FALSE;
+					}
 					break;
 				default:
-					//litm.dest = "~not copied~";
-					//litm.source = "~not copied~";
 					break;
 				}
-				//DbgPrint("source: %s\n", litm.source.c_str());
-				//DbgPrint("dest  : %s\n", litm.dest.c_str());
 			}
-			//else
-			//{
-			//	strcpy(srcFile, MANIFEST_BASE);
-			//	strcat(srcFile, SU_PACKAGE);
-			//	loadVerifyContainer(srcFile, 1, NULL);
-			//	DbgPrint("~no copy~\n");
-			//}
 		}
 	}
 	return TRUE;
@@ -526,7 +391,9 @@ void cleanInfList(void)
 		for(i = 0; i < sz; i++)
 		{
 			if(inf.at(i).data != NULL)
+			{
 				delete[] inf.at(i).data;
+			}
 		}
 	}
 	inf.clear();
@@ -545,7 +412,6 @@ BOOL loadManifest(BOOL verifyOnly, char* manifest_folder)
 	if(litm.data != NULL)
 	{
 		man = (PSU_MANIFEST) litm.data;
-		//DbgPrint("loaded manifest, %08x size\n", litm.len);
 		if((litm.len <= 0x10000)&&(litm.len >= 0x164))
 		{
 			if(verifyManifestHeader(man))
@@ -575,14 +441,11 @@ BOOL loadManifest(BOOL verifyOnly, char* manifest_folder)
 					return TRUE;
 				}
 				else if(verifyOnly)
+				{
 					dprintf("total errors %d\n", errcnt);
-					//cleanInfList();
+				}
 			}
-			//else
-			//	DbgPrint("manifest header check failed!\n");
 		}
-		//else
-		//	DbgPrint("manifest size error!\n");
 		delete[] litm.data;
 	}
 	dprintf("could not load %s!\n", manifest_file);
@@ -620,7 +483,8 @@ BOOL doDirCreate(char* cdir)
 	return TRUE;
 }
 
-char* dirs[] = {
+char* dirs[] =
+{
 	"32000100",
 	"Content",
 	"Content\\0000000000000000",
@@ -634,12 +498,16 @@ BOOL createDefaultDirs(void)
 	char dirname[16];
 	sprintf(dirname, "%08X", XamGetSystemVersion());
 	if(doDirCreate(dirname) == FALSE)
+	{
 		return FALSE;
+	}
 
 	for(i = 0; i < sizeof(dirs)/sizeof(char*); i++)
 	{
 		if(doDirCreate(dirs[i]) == FALSE)
+		{
 			return FALSE;
+		}
 	}
 	return TRUE;
 }
@@ -667,21 +535,23 @@ NTSTATUS wipePartition(char* path)
 	oat.RootDirectory = 0;
 	oat.ObjectName = &devi;
 	oat.Attributes = FILE_ATTRIBUTE_DEVICE;
-	
+
 	sts = NtOpenFile(&hDevi, GENERIC_WRITE|GENERIC_READ|SYNCHRONIZE, &oat, &ios, OPEN_EXISTING, FILE_SYNCHRONOUS_IO_NONALERT);
-	//sts = NtCreateFile(&hDevi, GENERIC_READ|GENERIC_WRITE|SYNCHRONIZE, &oat, &ios, 0, FILE_ATTRIBUTE_NORMAL, OPEN_EXISTING, 1, FILE_SYNCHRONOUS_IO_NONALERT|8);
 	if(sts >= 0)
 	{
 		BYTE buf[0x4000];
 		LARGE_INTEGER lint;
 		lint.QuadPart = 0ULL;
 		XMemSet(buf, 0, 0x1000);
-		//sta = NtWriteFile(hFile, 0, 0, 0, &ioFlash, src, writeSize, &lOffset);
 		sts = NtWriteFile(hDevi, NULL, NULL, NULL, &ios, buf, 0x1000, &lint);
 		if(sts >= 0)
+		{
 			DbgPrint("wipe partition %s succeeded\n", path);
+		}
 		else
+		{
 			DbgPrint("wipe partition failed to overwrite header: 0x%08x\n", sts);
+		}
 		NtClose(hDevi);
 	}
 	else
@@ -769,7 +639,10 @@ BOOL doFormatPartitions(void)
 	XSetThreadProcessor(pthread, 4);
 	ResumeThread(pthread);
 	CloseHandle(pthread);
-	while(threadWaitStatus == 1){Sleep(400);}
+	while(threadWaitStatus == 1)
+	{
+		Sleep(400);
+	}
 	if(formatStatus == 0)
 	{
 		mountSepAux();
@@ -780,47 +653,45 @@ BOOL doFormatPartitions(void)
 	return FALSE;
 }
 
-HRESULT setupSysPartitions(char* manifest){
-
-	//Mount("\\SystemRoot", "Root:");
+HRESULT setupSysPartitions(char* manifest)
+{
 
 	if(!FileExists(manifest))
+	{
 		return ERROR_SEVERITY_WARNING;
+	}
 
-	//loadManifest(FALSE, manifest);
 	if(doFormatPartitions())
 	{
 		dprintf("format succeeded!\n");
-		//mountSepAux();
 		Mount("\\Device\\Harddisk0\\SystemExtPartition", "\\System??\\SysExt:");
 		int retError = CopyDirectory(manifest, "SysExt:");
-		if(!retError){
+		if(!retError)
+		{
 			DeleteDirectory(manifest, TRUE);
 			dprintf("sysex install successful!\n");
-		}else{
+		}
+		else
+		{
 			dprintf("failed to install sysex partition: %08X\n", retError);
 		}
 
 		Mount("\\Device\\Harddisk0\\SystemAuxPartition", "\\System??\\SysAux:");
 		retError = CopyDirectory("HDD:\\Filesystems\\17489-dev\\$SystemUpdate_aux", "SysAux:");
-		if(!retError){
+		if(!retError)
+		{
 			DeleteDirectory("HDD:\\Filesystems\\17489-dev\\$SystemUpdate_aux", TRUE);
 			dprintf("sysaux install successful!\n");
-		}else{
-			dprintf("failed to install sysaux partition: %08X\n", retError);
-		}
-
-		/*if(createDefaultDirs())
-		{
-			dprintf("default directories created!\n");
-			installFiles();
-			DeleteDirectory(manifest, TRUE);
 		}
 		else
-			dprintf("format FAILED!\n");*/
+		{
+			dprintf("failed to install sysaux partition: %08X\n", retError);
+		}
 	}
 	else
+	{
 		dprintf("format FAILED!\n");
+	}
 
 	cleanInfList();
 	return ERROR_SEVERITY_SUCCESS;

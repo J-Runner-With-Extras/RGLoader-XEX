@@ -3,32 +3,35 @@
 using namespace std;
 
 
-VOID patchInDashStrings(DWORD* addr, DWORD xex, DWORD path){
+VOID patchInDashStrings(DWORD* addr, DWORD xex, DWORD path)
+{
 	DWORD data[4];
 
-	if(xex & 0x8000){ // If bit 16 is 1
+	if(xex & 0x8000) // If bit 16 is 1
+	{
 		data[0] = 0x3D600000 + (((xex >> 16) & 0xFFFF) + 1); // lis 	%r11, dest>>16 + 1
-	}else{
+	}
+	else
+	{
 		data[0] = 0x3D600000 + ((xex >> 16) & 0xFFFF); // lis 	%r11, dest>>16
 	}
-	if(path & 0x8000){ // If bit 16 is 1
+	if(path & 0x8000) // If bit 16 is 1
+	{
 		data[1] = (DWORD)0x3D400000 + (((path >> 16) & 0xFFFF) + 1); // lis 	%r11, dest>>16 + 1
-	}else{
+	}
+	else
+	{
 		data[1] = (DWORD)0x3D400000 + ((path >> 16) & 0xFFFF); // lis 	%r11, dest>>16
 	}
 
 	data[2] = 0x388B0000 + (xex & 0xFFFF);
 	data[3] = (DWORD)0x386A0000 + (DWORD)(path & 0xFFFF);
 
-	//printf("[RGLOADER]: Patch data @ %X = %08X.%08X.%08X.%08X\n", addr, data[0], data[1], data[2], data[3]);
-	
 	memcpy((LPVOID)addr, (LPCVOID)data, 0x10);
 }
 
-int patch_Xshell_start_path(string nPath){
-
-	//nPath = "\\Device\\Harddisk0\\Partition1\\DEVKIT\\Utilities\\DashSelector";
-	//string xex = "DashSelector.xex";
+int patch_Xshell_start_path(string nPath)
+{
 
 	int backslash = nPath.rfind("\\");
 	string xex = nPath.substr(backslash+1, nPath.length()-(backslash+1));
@@ -46,10 +49,10 @@ int patch_Xshell_start_path(string nPath){
 	lis       r10, ((aSystemroot+0x10000)@h) # "\\SystemRoot"
 	*/
 	//patch all references
-	patchInDashStrings((DWORD*)loc1 , (DWORD)startXex, (DWORD)startPath); 
-	patchInDashStrings((DWORD*)loc2 , (DWORD)startXex, (DWORD)startPath); 
-	patchInDashStrings((DWORD*)loc3 , (DWORD)startXex, (DWORD)startPath); 
+	patchInDashStrings((DWORD*)loc1 , (DWORD)startXex, (DWORD)startPath);
+	patchInDashStrings((DWORD*)loc2 , (DWORD)startXex, (DWORD)startPath);
+	patchInDashStrings((DWORD*)loc3 , (DWORD)startXex, (DWORD)startPath);
 	patchInDashStrings((DWORD*)loc4 , (DWORD)startXex, (DWORD)startPath);
-	
+
 	return 1;
 }

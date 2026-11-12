@@ -1,13 +1,12 @@
 #include "utilities.h"
 #include <ppcintrinsics.h>
 #include <string>
-//#include <xfilecache.h>
 
 
 void Mount(char* dev, char* mnt)
 {
 	ANSI_STRING asDevice, asMount;
-    RtlInitAnsiString(&asDevice, dev);
+	RtlInitAnsiString(&asDevice, dev);
 	RtlInitAnsiString(&asMount, mnt);
 	ObCreateSymbolicLink(&asMount, &asDevice);
 }
@@ -20,27 +19,29 @@ void dprintf(const char* s, ...)
 	va_start(argp, s);
 	vsnprintf_s(temp, 512,512, s, argp);
 	va_end(argp);
-	//console.Display(temp);
 	OutputDebugStringA(temp);
-	//DbgPrint("%s", temp);
 }
 
 
 DWORD resolveFunct(char* modname, DWORD ord)
 {
-        UINT32 ptr32=0, ret=0, ptr2=0;
-        ret = XexGetModuleHandle(modname, (PHANDLE)&ptr32); //xboxkrnl.exe xam.dll?
-        if(ret == 0)
-        {
-                ret = XexGetProcedureAddress((HANDLE)ptr32, ord, &ptr2 );
-                if(ptr2 != 0)
-                        return ptr2;
-        }
-        return 0; // function not found
+	UINT32 ptr32=0, ret=0, ptr2=0;
+	ret = XexGetModuleHandle(modname, (PHANDLE)&ptr32); //xboxkrnl.exe xam.dll?
+	if(ret == 0)
+	{
+		ret = XexGetProcedureAddress((HANDLE)ptr32, ord, &ptr2 );
+		if(ptr2 != 0)
+		{
+			return ptr2;
+		}
+	}
+	return 0; // function not found
 }
 
-UINT32 __declspec(naked) HvxSetState(UINT32 mode){ //2 = protection off, 3 = protection on
-	__asm {
+UINT32 __declspec(naked) HvxSetState(UINT32 mode) //2 = protection off, 3 = protection on
+{
+	__asm
+	{
 		li      r0, 0x7B
 		sc
 		blr
@@ -49,7 +50,8 @@ UINT32 __declspec(naked) HvxSetState(UINT32 mode){ //2 = protection off, 3 = pro
 
 VOID __declspec(naked) GLPR_FUN(VOID)
 {
-	__asm{
+	__asm
+	{
 		std     r14, -0x98(sp)
 		std     r15, -0x90(sp)
 		std     r16, -0x88(sp)
@@ -79,7 +81,9 @@ DWORD interpretBranchDest(DWORD currAddr, DWORD brInst)
 	int destOff = brInst&0x3FFFFFC;
 	int currOff = currAddr&~0x80000000; // make it a positive int
 	if(brInst&0x2000000) // backward branch
+	{
 		destOff = destOff|0xFC000000; // sign extend
+	}
 	ret = (DWORD)(currOff+destOff);
 	return (ret|(currAddr&0x80000000)); // put back the bit if it was used
 }
@@ -110,21 +114,18 @@ DWORD relinkGPLR(int offset, PDWORD saveStubAddr, PDWORD orgAddr)
 	int i;
 	// if the msb is set in the instruction, set the rest of the bits to make the int negative
 	if(offset&0x2000000)
+	{
 		offset = offset|0xFC000000;
-	//DbgPrint("frame save offset: %08x\n", offset);
-	//repl = orgTemp[offset/4];
+	}
 	memcpy(&repl, &orgAddr[((DWORD)offset)/4], 4);
-	//DbgPrint("replacing %08x\n", repl);
 	for(i = 0; i < 20; i++)
 	{
 		if(repl == saver[i])
 		{
 			int newOffset = (int)((PDWORD)(GLPR_FUN)+(DWORD)i)-(int)saveStubAddr;
 			inst = 0x48000001|(newOffset&0x3FFFFFC);
-			//DbgPrint("saver addr: %08x savestubaddr: %08x\n", &saver[i], saveStubAddr);
 		}
 	}
-	//DbgPrint("new instruction: %08x\n", inst);
 	return inst;
 }
 
@@ -139,14 +140,14 @@ VOID hookFunctionStart(PDWORD addr, PDWORD saveStub, PDWORD oldData, DWORD dest)
 	{
 		int i;
 		DWORD addrReloc = (DWORD)(&addr[4]);// replacing 4 instructions with a jump, this is the stub return address
-		//DbgPrint("hooking addr: %08x savestub: %08x dest: %08x addreloc: %08x\n", addr, saveStub, dest, addrReloc);
 		// build the stub
 		// make a jump to go to the original function start+4 instructions
-		if(addrReloc & 0x8000){ // If bit 16 is 1
-			//setmemdm( &saveStub[0], (0x3D600000 + (((addrReloc >> 16) & 0xFFFF) + 1)));
-			temp[0] = 0x3D600000 + (((addrReloc >> 16) & 0xFFFF) + 1); // lis %r11, dest>>16 + 1printf("  - one\r\n");
-		}else{
-			//setmemdm( &saveStub[0], (0x3D600000 + (((addrReloc >> 16) & 0xFFFF) + 1)));
+		if(addrReloc & 0x8000) // If bit 16 is 1
+		{
+			temp[0] = 0x3D600000 + (((addrReloc >> 16) & 0xFFFF) + 1); // lis %r11, dest>>16 + 1
+		}
+		else
+		{
 			temp[0] = 0x3D600000 + ((addrReloc >> 16) & 0xFFFF); // lis %r11, dest>>16
 		}
 
@@ -158,31 +159,25 @@ VOID hookFunctionStart(PDWORD addr, PDWORD saveStub, PDWORD oldData, DWORD dest)
 		if(oldData != NULL)
 		{
 			for(i = 0; i<4; i++)
+			{
 				oldData[i] = addrtemp[i];
+			}
 		}
 		for(i = 0; i<4; i++)
 		{
 			if((addrtemp[i]&0x48000003) == 0x48000001) // branch with link
 			{
-				//DbgPrint("relink %08x\n", addr[i]);
 				temp[i+3] = relinkGPLR((addrtemp[i]&~0x48000003), &saveStub[i+3], &addr[i]);
 			}
 			else
 			{
-				//DbgPrint("copy %08x\n", addr[i]);
 				temp[i+3] = addrtemp[i];
 			}
 		}
 
 		temp[7] = 0x4E800420; // bctr
-		//doSync(temp);
-		//DbgPrint("savestub:\n");
-		//for(i = 0; i < 8; i++)
-		//{
-		//	DbgPrint("PatchDword(0x%08x, 0x%08x);\n", &saveStub[i], saveStub[i]);
-		//}
 		// patch the actual function to jump to our replaced one
-		memcpy( saveStub, temp, 8 * 4); 
+		memcpy( saveStub, temp, 8 * 4);
 		patchInJump(addr, dest, FALSE);
 	}
 }
@@ -205,29 +200,40 @@ DWORD findInterpretBranchOrd(PCHAR modname, DWORD ord, DWORD maxSearch)
 	DWORD ret = 0;
 	PDWORD search = (PDWORD)resolveFunct(modname, ord);
 	if(search != NULL)
+	{
 		ret = findInterpretBranch(search, maxSearch);
+	}
 	return ret;
 }
 
 
 
 
-VOID patchInJump(DWORD* addr, DWORD dest, BOOL linked){
+VOID patchInJump(DWORD* addr, DWORD dest, BOOL linked)
+{
 	DWORD temp[4];
 
 	if(dest & 0x8000) // If bit 16 is 1
+	{
 		temp[0] = 0x3D600000 + (((dest >> 16) & 0xFFFF) + 1); // lis 	%r11, dest>>16 + 1
+	}
 	else
+	{
 		temp[0] = 0x3D600000 + ((dest >> 16) & 0xFFFF); // lis 	%r11, dest>>16
+	}
 
 	temp[1] = 0x396B0000 + (dest & 0xFFFF); // addi	%r11, %r11, dest&0xFFFF
 	temp[2] = 0x7D6903A6; // mtctr	%r11
 
 	if(linked)
+	{
 		temp[3] = 0x4E800421; // bctrl
+	}
 	else
+	{
 		temp[3] = 0x4E800420; // bctr
-	
+	}
+
 	memcpy(addr,temp, 0x10);
 }
 
@@ -265,14 +271,9 @@ BOOL hookImpStubDebug(char* modname, char* impmodname, DWORD ord, DWORD patchAdd
 						{
 							HRESULT hr;
 							hr = (HRESULT) memcpy(add, (LPCVOID)patchAddr, 4);
-							//DbgPrint("XTW: 2 hr = 0x%008X | at addr: 0x%08X\n", hr, add);
 							BYTE data[0x10];
 							patchInJump((PDWORD)data, patchAddr, FALSE);
 							hr = (HRESULT)memcpy((PDWORD)(impTbl->ImportStubAddr[j+1]), (LPCVOID)data, 0x10);
-							//memcpy((PDWORD)(impTbl->ImportStubAddr[j+1]), data, 0x10);
-							//DbgPrint("XTW: 2 hr = 0x%008X | at addr: 0x%08X\n", hr, (PDWORD)(impTbl->ImportStubAddr[j+1]));
-							//DbgPrint("%s %s tbl %d has ord %x at tstub %d location %08x\n", modname, impName, i, ord, j, impTbl->ImportStubAddr[j+1]);
-							//patchInJump((PDWORD)(impTbl->ImportStubAddr[j+1]), patchAddr, FALSE);
 							j = impTbl->ImportCount;
 							ret = TRUE;
 						}
@@ -280,19 +281,19 @@ BOOL hookImpStubDebug(char* modname, char* impmodname, DWORD ord, DWORD patchAdd
 					impTbl = (PXEX_IMPORT_TABLE)((BYTE*)impTbl+impTbl->TableSize);
 					impName = impName+strlen(impName);
 					while((impName[0]&0xFF) == 0x0)
+					{
 						impName++;
+					}
 				}
-			}		
-			//else DbgPrint("could not find import descriptor for mod %s\n", modname);
+			}
 		}
-		//else DbgPrint("could not find data table for mod %s\n", modname);
 	}
-	//else DbgPrint("could not find ordinal %d in mod %s\n", ord, impmodname);
 
 	return ret;
 }
 
-DWORD makeBranch(DWORD branchAddr, DWORD destination, BOOL linked) {
+DWORD makeBranch(DWORD branchAddr, DWORD destination, BOOL linked)
+{
 	return (0x48000000)|((destination-branchAddr)&0x03FFFFFF)|(DWORD)linked;
 }
 
@@ -301,7 +302,8 @@ void swap_endian(BYTE* src, DWORD size)
 {
 
 	BYTE* temp = new BYTE[size];
-	for(int i=size-4, b=0; i>=0; i-=4, b+=4){
+	for(int i=size-4, b=0; i>=0; i-=4, b+=4)
+	{
 		*(DWORD*)&temp[b]=(DWORD)src[i];
 	}
 	memcpy(src, temp, size);
@@ -309,89 +311,65 @@ void swap_endian(BYTE* src, DWORD size)
 }
 
 HRESULT cOzMount(const char* szDrive, const char* szDevice, const char* sysStr)
-    {
-            STRING DeviceName, LinkName;
-            CHAR szDestinationDrive[MAX_PATH];
-            sprintf_s(szDestinationDrive, MAX_PATH, sysStr, szDrive);
-            RtlInitAnsiString((PANSI_STRING)&DeviceName, szDevice);
-            RtlInitAnsiString((PANSI_STRING)&LinkName, szDestinationDrive);
-            ObDeleteSymbolicLink((PANSI_STRING)&LinkName);
-            return (HRESULT)ObCreateSymbolicLink((PANSI_STRING)&LinkName, (PANSI_STRING)&DeviceName);
-    }
+{
+	STRING DeviceName, LinkName;
+	CHAR szDestinationDrive[MAX_PATH];
+	sprintf_s(szDestinationDrive, MAX_PATH, sysStr, szDrive);
+	RtlInitAnsiString((PANSI_STRING)&DeviceName, szDevice);
+	RtlInitAnsiString((PANSI_STRING)&LinkName, szDestinationDrive);
+	ObDeleteSymbolicLink((PANSI_STRING)&LinkName);
+	return (HRESULT)ObCreateSymbolicLink((PANSI_STRING)&LinkName, (PANSI_STRING)&DeviceName);
+}
 
 
 
 
-void reLaunchXshell(void){
+void reLaunchXshell(void)
+{
 
 	printf("[RGLOADER]: Thread ---------!\n");
 
-	if(KeGetCurrentProcessType() == PROC_SYSTEM){
+	if(KeGetCurrentProcessType() == PROC_SYSTEM)
+	{
 		printf("[RGLOADER]: Thread is still system!\n");
-	}else printf("[RGLOADER]: Attempting to launch xshell! Mounting drives..\n");
-
-
-	/*XFlushUtilityDrive();
-    XFileCacheInit(XFILECACHE_CLEAR_ALL,0,XFILECACHE_DEFAULT_THREAD,0,1);
-    XFileCacheShutdown();
-    XFlushUtilityDrive();*/
+	}
+	else
+	{
+		printf("[RGLOADER]: Attempting to launch xshell! Mounting drives..\n");
+	}
 
 
 	XSetLaunchData( NULL, 0 );
 	XamLoaderLaunchTitleEx("\\SystemRoot\\dash.xex", NULL, NULL, 0);
-	//XLaunchNewImage( XLAUNCH_KEYWORD_DEFAULT_APP, 0);
-
-     /*if(cOzMount("rgl:", "\\SystemRoot", "\\??\\%s")!= 0) 
-		 printf("ERROR[RGLOADER]: Error mounting drive.\n"); // for sys threads use "\\System??\\%s"
-	 if(cOzMount("rgl2:", "\\SystemRoot", "\\System??\\%s") != 0) 
-		 printf("ERROR[RGLOADER]: Error mounting drive2.\n"); // for sys threads use "\\System??\\%s"
-
-	 XLaunchNewImage("rgl2:\\dash.xex", 0);
-     XLaunchNewImage("rgl:\\dash.xex", 0);*/
 
 }
-     
-    void LaunchXshell(void)
-    {
-            if(KeGetCurrentProcessType() == PROC_SYSTEM)
-            {
-				/*HMODULE handle = GetModuleHandle("hud.xex");
-				if(!handle) printf("ERROR[RGLOADER]: Could not get handle to hud.xex\n");
-				else{
-					printf("[RGLOADER]: Freeing Hud.xex library\n");
-					FreeLibraryAndExitThread(handle, 1);
-				}*/
-				printf("[RGLOADER]: System thread, attempting to launch xshell.\n");
-				XSetLaunchData( NULL, 0 );
 
-				//XamLoaderLaunchTitleEx("\\Device\\Harddisk0\\Partition1\\DEVKIT\\Utilities\\DashSelector\\DashSelector.xex", "\\Device\\Harddisk0\\Partition1\\DEVKIT\\Utilities\\DashSelector", NULL, 0);
-				XamLoaderLaunchTitleEx("\\Device\\Flash\\xshell.xex", "\\Device\\Flash", NULL, 0);
+void LaunchXshell(void)
+{
+	if(KeGetCurrentProcessType() == PROC_SYSTEM)
+	{
+		printf("[RGLOADER]: System thread, attempting to launch xshell.\n");
+		XSetLaunchData( NULL, 0 );
 
-				/*printf("[RGLOADER]: System thread, creating retail thread to launch xshell.\n");
-                HANDLE hThread;
-                DWORD dwThreadId;
-                hThread = CreateThread( 0, 0, (LPTHREAD_START_ROUTINE)reLaunchXshell, 0, CREATE_SUSPENDED, &dwThreadId );
-				printf("[RGLOADER]: System thread, setting processor.\n");
-                XSetThreadProcessor(hThread, 4);
-			    SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
-				printf("[RGLOADER]: System thread, resuming thread.\n");
-                ResumeThread(hThread);
-				printf("[RGLOADER]: System thread, closing handle.\n");
-                CloseHandle(hThread);*/
-            }
-            else
-            {
-				printf("[RGLOADER]: Launching xshell!");
-                reLaunchXshell();
-            }
-    }
+		XamLoaderLaunchTitleEx("\\Device\\Flash\\xshell.xex", "\\Device\\Flash", NULL, 0);
+	}
+	else
+	{
+		printf("[RGLOADER]: Launching xshell!");
+		reLaunchXshell();
+	}
+}
 
-BOOL FileExists(LPCSTR lpFileName) {
+BOOL FileExists(LPCSTR lpFileName)
+{
 
-	if(GetFileAttributes(lpFileName) == -1) {
+	if(GetFileAttributes(lpFileName) == -1)
+	{
 		DWORD lastError = GetLastError();
 		if(lastError == ERROR_FILE_NOT_FOUND || lastError == ERROR_PATH_NOT_FOUND)
+		{
 			return FALSE;
+		}
 	}
 
 	return TRUE;
@@ -401,76 +379,89 @@ BOOL FileExists(LPCSTR lpFileName) {
 
 
 int DeleteDirectory(const std::string &refcstrRootDirectory,
-                    bool              bDeleteSubdirectories)
+	bool bDeleteSubdirectories)
 {
-  bool            bSubdirectory = false;       // Flag, indicating whether
-                                               // subdirectories have been found
-  HANDLE          hFile;                       // Handle to directory
-  std::string     strFilePath;                 // Filepath
-  std::string     strPattern;                  // Pattern
-  WIN32_FIND_DATA FileInformation;             // File information
+	bool            bSubdirectory = false;       // Flag, indicating whether subdirectories have been found
+	HANDLE          hFile;                       // Handle to directory
+	std::string     strFilePath;                 // Filepath
+	std::string     strPattern;                  // Pattern
+	WIN32_FIND_DATA FileInformation;             // File information
 
 
-  strPattern = refcstrRootDirectory + "\\*.*";
-  hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
-  if(hFile != INVALID_HANDLE_VALUE)
-  {
-    do
-    {
-      if(FileInformation.cFileName[0] != '.')
-      {
-        strFilePath.erase();
-        strFilePath = refcstrRootDirectory + "\\" + FileInformation.cFileName;
+	strPattern = refcstrRootDirectory + "\\*.*";
+	hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
+	if(hFile != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if(FileInformation.cFileName[0] != '.')
+			{
+				strFilePath.erase();
+				strFilePath = refcstrRootDirectory + "\\" + FileInformation.cFileName;
 
-        if(FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-          if(bDeleteSubdirectories)
-          {
-            // Delete subdirectory
-            int iRC = DeleteDirectory(strFilePath, bDeleteSubdirectories);
-            if(iRC)
-              return iRC;
-          }
-          else
-            bSubdirectory = true;
-        }
-        else
-        {
-          // Set file attributes
-          if(::SetFileAttributes(strFilePath.c_str(),
-                                 FILE_ATTRIBUTE_NORMAL) == FALSE)
-            return ::GetLastError();
+				if(FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				{
+					if(bDeleteSubdirectories)
+					{
+						// Delete subdirectory
+						int iRC = DeleteDirectory(strFilePath, bDeleteSubdirectories);
+						if(iRC)
+						{
+							return iRC;
+						}
+					}
+					else
+					{
+						bSubdirectory = true;
+					}
+				}
+				else
+				{
+					// Set file attributes
+					if(::SetFileAttributes(strFilePath.c_str(),
+						FILE_ATTRIBUTE_NORMAL) == FALSE)
+					{
+						return ::GetLastError();
+					}
 
-          // Delete file
-          if(::DeleteFile(strFilePath.c_str()) == FALSE)
-            return ::GetLastError();
-        }
-      }
-    } while(::FindNextFile(hFile, &FileInformation) == TRUE);
+					// Delete file
+					if(::DeleteFile(strFilePath.c_str()) == FALSE)
+					{
+						return ::GetLastError();
+					}
+				}
+			}
+		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
 
-    // Close handle
-    ::FindClose(hFile);
+		// Close handle
+		::FindClose(hFile);
 
-    DWORD dwError = ::GetLastError();
-    if(dwError != ERROR_NO_MORE_FILES)
-      return dwError;
-    else
-    {
-      if(!bSubdirectory)
-      {
-        // Set directory attributes
-        if(::SetFileAttributes(refcstrRootDirectory.c_str(),
-                               FILE_ATTRIBUTE_NORMAL) == FALSE)
-          return ::GetLastError();
+		DWORD dwError = ::GetLastError();
+		if(dwError != ERROR_NO_MORE_FILES)
+		{
+			return dwError;
+		}
+		else
+		{
+			if(!bSubdirectory)
+			{
+				// Set directory attributes
+				if(::SetFileAttributes(refcstrRootDirectory.c_str(),
+					FILE_ATTRIBUTE_NORMAL) == FALSE)
+				{
+					return ::GetLastError();
+				}
 
-        // Delete directory
-        if(::RemoveDirectory(refcstrRootDirectory.c_str()) == FALSE)
-          return ::GetLastError();
-      }
-    }
-  }
+				// Delete directory
+				if(::RemoveDirectory(refcstrRootDirectory.c_str()) == FALSE)
+				{
+					return ::GetLastError();
+				}
+			}
+		}
+	}
 
-  return 0;
+	return 0;
 }
 
 BOOL IsFileExist(const char* path)
@@ -479,10 +470,14 @@ BOOL IsFileExist(const char* path)
 	if(file == INVALID_HANDLE_VALUE)
 	{
 		if(GetLastError() != 5) // inaccessible means it exists but is probably open somewhere else
+		{
 			return FALSE;
+		}
 	}
 	else
+	{
 		CloseHandle(file);
+	}
 	return TRUE;
 }
 
@@ -506,9 +501,13 @@ HRESULT deleteLink(const char* szDrive, BOOL both)
 	else
 	{
 		if(KeGetCurrentProcessType() == PROC_SYSTEM)
+		{
 			res = doDeleteLink(szDrive, OBJ_SYS_STRING);
+		}
 		else
+		{
 			res = doDeleteLink(szDrive, OBJ_USR_STRING);
+		}
 	}
 	return res;
 }
@@ -536,9 +535,13 @@ HRESULT MountPath(const char* szDrive, const char* szDevice, BOOL both)
 	else
 	{
 		if(KeGetCurrentProcessType() == PROC_SYSTEM)
+		{
 			res = doMountPath(szDrive, szDevice, OBJ_SYS_STRING);
+		}
 		else
+		{
 			res = doMountPath(szDrive, szDevice, OBJ_USR_STRING);
+		}
 	}
 	return res;
 }
@@ -570,7 +573,9 @@ BOOL WriteBufToFile(const char* szPath, PBYTE pbData, DWORD dwLen, BOOL wRemoveE
 	if(wRemoveExisting)
 	{
 		if(IsFileExist(szPath))
+		{
 			DeleteFileA(szPath);
+		}
 	}
 	HANDLE hFile = CreateFile(szPath, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if(hFile != INVALID_HANDLE_VALUE)
@@ -589,56 +594,62 @@ BOOL WriteBufToFile(const char* szPath, PBYTE pbData, DWORD dwLen, BOOL wRemoveE
 }
 
 int CopyDirectory(const std::string &refcstrSourceDirectory,
-                  const std::string &refcstrDestinationDirectory)
+	const std::string &refcstrDestinationDirectory)
 {
-  std::string     strSource;               // Source file
-  std::string     strDestination;          // Destination file
-  std::string     strPattern;              // Pattern
-  HANDLE          hFile;                   // Handle to file
-  WIN32_FIND_DATA FileInformation;         // File information
+	std::string     strSource;               // Source file
+	std::string     strDestination;          // Destination file
+	std::string     strPattern;              // Pattern
+	HANDLE          hFile;                   // Handle to file
+	WIN32_FIND_DATA FileInformation;         // File information
 
 
-  strPattern = refcstrSourceDirectory + "\\*.*";
+	strPattern = refcstrSourceDirectory + "\\*.*";
 
-  // Create destination directory
-  ::CreateDirectory(refcstrDestinationDirectory.c_str(), 0);
-   
+	// Create destination directory
+	::CreateDirectory(refcstrDestinationDirectory.c_str(), 0);
 
-  hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
-  if(hFile != INVALID_HANDLE_VALUE)
-  {
-    do
-    {
-      if(FileInformation.cFileName[0] != '.')
-      {
-        strSource.erase();
-        strDestination.erase();
 
-        strSource      = refcstrSourceDirectory + "\\" + FileInformation.cFileName;
-        strDestination = refcstrDestinationDirectory + "\\" + FileInformation.cFileName;
+	hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
+	if(hFile != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if(FileInformation.cFileName[0] != '.')
+			{
+				strSource.erase();
+				strDestination.erase();
 
-        if(FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-          // Copy subdirectory
-          if(CopyDirectory(strSource, strDestination))
-            return 1;
-        }
-        else
-        {
-          // Copy file
-          if(::CopyFile(strSource.c_str(), strDestination.c_str(), TRUE) == FALSE)
-            return ::GetLastError();
-        }
-      }
-    } while(::FindNextFile(hFile, &FileInformation) == TRUE);
+				strSource      = refcstrSourceDirectory + "\\" + FileInformation.cFileName;
+				strDestination = refcstrDestinationDirectory + "\\" + FileInformation.cFileName;
 
-    // Close handle
-    ::FindClose(hFile);
+				if(FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				{
+					// Copy subdirectory
+					if(CopyDirectory(strSource, strDestination))
+					{
+						return 1;
+					}
+				}
+				else
+				{
+					// Copy file
+					if(::CopyFile(strSource.c_str(), strDestination.c_str(), TRUE) == FALSE)
+					{
+						return ::GetLastError();
+					}
+				}
+			}
+		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
 
-    DWORD dwError = ::GetLastError();
-    if(dwError != ERROR_NO_MORE_FILES)
-      return dwError;
-  }
+		// Close handle
+		::FindClose(hFile);
 
-  return 0;
+		DWORD dwError = ::GetLastError();
+		if(dwError != ERROR_NO_MORE_FILES)
+		{
+			return dwError;
+		}
+	}
+
+	return 0;
 }
