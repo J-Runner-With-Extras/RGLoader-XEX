@@ -70,24 +70,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="kernel\kernelext20871.0.def">
-      <Filter>Source Files\kernel</Filter>
-    </None>
-    <None Include="kernel\kernelext21119.0.def">
-      <Filter>Source Files\kernel</Filter>
-    </None>
-    <None Include="xam\xamext20871.0.def">
-      <Filter>Source Files\xam</Filter>
-    </None>
-    <None Include="xam\xamext21119.0.def">
-      <Filter>Source Files\xam</Filter>
-    </None>
-    <None Include="kernel\kernelext21173.0.def">
-      <Filter>Source Files\kernel</Filter>
-    </None>
-    <None Include="xam\xamext21173.0.def">
-      <Filter>Source Files\xam</Filter>
-    </None>
     <None Include="kernel\kernelext21250.0.def">
       <Filter>Source Files\kernel</Filter>
     </None>

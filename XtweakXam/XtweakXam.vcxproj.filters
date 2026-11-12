@@ -36,13 +36,10 @@
     <ClInclude Include="xshell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HvExpansion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OffsetManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sysext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XBDMOffsets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -69,12 +66,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HUD.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HvExpansion.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OffsetManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sysext.cpp">
