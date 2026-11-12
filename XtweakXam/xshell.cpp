@@ -37,11 +37,11 @@ int patch_Xshell_start_path(string nPath)
 	string xex = nPath.substr(backslash+1, nPath.length()-(backslash+1));
 	nPath=nPath.substr(0, backslash);
 
-	printf("\n[RGLOADER]: Setting xshell start button to: %s  %s !\n", nPath.c_str(), xex.c_str());
+	RGLDbgPrint("\n[RGLOADER]: Setting xshell start button to: %s  %s !\n", nPath.c_str(), xex.c_str());
 
-	startXex=new char[xex.length()];
+	startXex=new char[xex.length() + 1];
 	strcpy(startXex, xex.c_str());
-	startPath=new char[nPath.length()];
+	startPath=new char[nPath.length() + 1];
 	strcpy(startPath, nPath.c_str());
 
 	/*Search for:

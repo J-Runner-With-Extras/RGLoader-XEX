@@ -51,14 +51,14 @@ void patchHUDStrings(void)
 	HANDLE hModule = searchForHandle( "hud.dll" );
 	if(hModule == INVALID_HANDLE_VALUE)
 	{
-		printf("\nERROR: Unable to get handle to hud.dll\n");
+		RGLDbgPrint("\nERROR: Unable to get handle to hud.dll\n");
 	}
 
 	VOID* pSectionData;
 	DWORD dwSectionSize;
 	if( !XGetModuleSection(hModule ,"hud", &pSectionData, &dwSectionSize ) )
 	{
-		printf("\nERROR: Unable to get module section data from hud.dll\n");
+		RGLDbgPrint("\nERROR: Unable to get module section data from hud.dll\n");
 	}
 
 	replaceHudString(HUD_FamilySettings_String, (DWORD)pSectionData + FamilySettings_Str1, HUD_FamilySettings_Len);
@@ -71,7 +71,7 @@ DWORD HUD_BootToDashHelper_Hook(DWORD* _XUIOBJ, _XDASHLAUNCHDATA* LaunchData , D
 
 	if(LaunchData->dwCommand==(DWORD)LaunchData_FamilySettings)
 	{
-		printf("\n[RGLOADER]: Jumping back to xshell!\n");
+		RGLDbgPrint("\n[RGLOADER]: Jumping back to xshell!\n");
 		XSetLaunchData( NULL, 0 );
 
 		XamLoaderLaunchTitleEx("\\SystemRoot\\xshell.xex", "\\SystemRoot", NULL, 0);

@@ -100,17 +100,17 @@ BOOL verifyManifestHeader(PSU_MANIFEST man)
 	BYTE* tdat;
 	if(man->body.cont.dwSchemaVer != 3)
 	{
-		DbgPrint("manifest schema != 3!\n");
+		RGLDbgPrint("manifest schema != 3!\n");
 		return FALSE;
 	}
 	if((man->body.cont.dwMagic != MAGIC_XSYM)&&(man->body.cont.dwMagic != MAGIC_XONM))
 	{
-		DbgPrint("manifest revision 0x%08x != xonm|xsym!\n", man->body.cont.dwMagic);
+		RGLDbgPrint("manifest revision 0x%08x != xonm|xsym!\n", man->body.cont.dwMagic);
 		return FALSE;
 	}
 	if(man->header.dwMagic != MAGIC_XMNP)
 	{
-		DbgPrint("manifest magic 0x%08x != XMNP!\n", man->header.dwMagic);
+		RGLDbgPrint("manifest magic 0x%08x != XMNP!\n", man->header.dwMagic);
 		return FALSE;
 	}
 	tdat = new BYTE[man->body.cont.size];
@@ -119,7 +119,7 @@ BOOL verifyManifestHeader(PSU_MANIFEST man)
 	delete[] tdat;
 	if(memcmp(shaBuf, man->header.baDataSha, 0x14) != 0)
 	{
-		DbgPrint("manifest checksum failed!\n");
+		RGLDbgPrint("manifest checksum failed!\n");
 		return FALSE;
 	}
 	return TRUE;
@@ -136,7 +136,7 @@ int getManifestString(BYTE* sdat, char* dest)
 	}
 	else
 	{
-		DbgPrint("err len = 0!\n");
+		RGLDbgPrint("err len = 0!\n");
 	}
 	return len;
 }
@@ -158,14 +158,14 @@ BOOL loadVerifyFile(PITEM_INFO citm, BYTE* hdat)
 				delete[] databuf;
 				if(memcmp(hashbuf, hdat, 0x14) == 0)
 				{
-					dprintf(" OK");
+					RGLDbgPrint(" OK");
 					return TRUE;
 				}
 			}
 			delete[] citm->data;
 		}
 	}
-	dprintf(" FAILED!\n");
+	RGLDbgPrint(" FAILED!\n");
 	errcnt++;
 	return FALSE;
 }
@@ -306,7 +306,7 @@ BOOL loadVerifyContainer(PITEM_INFO citm, unsigned char* hash)
 			{
 				if(conCheckHeader(citm->data, citm->len, hash))
 				{
-					dprintf(" OK");
+					RGLDbgPrint(" OK");
 					return TRUE;
 				}
 			}
@@ -314,7 +314,7 @@ BOOL loadVerifyContainer(PITEM_INFO citm, unsigned char* hash)
 		}
 	}
 	errcnt++;
-	dprintf(" FAILED!\n");
+	RGLDbgPrint(" FAILED!\n");
 	return FALSE;
 }
 
@@ -324,7 +324,7 @@ BOOL verifyManifestItems(BYTE* bodydat, int maxlen, BOOL verifyOnly, char* manif
 	char tbuf[512];
 	PSU_MANIFEST_BODY bod = (PSU_MANIFEST_BODY)bodydat;
 	DWORD i;
-	dprintf("Loading and checking %d items in manifest contents...\n", bod->items.dwNumEntries);
+	RGLDbgPrint("Loading and checking %d items in manifest contents...\n", bod->items.dwNumEntries);
 	for(i = 0; i < bod->items.dwNumEntries; i++)
 	{
 		ITEM_INFO litm;
@@ -336,7 +336,7 @@ BOOL verifyManifestItems(BYTE* bodydat, int maxlen, BOOL verifyOnly, char* manif
 			getManifestString(&bodydat[itm->dwSrcNameOff], sbuf);
 			litm.source = manifest_base;
 			litm.source += sbuf;
-			dprintf("\r\n%d - %s", i+1, sbuf);
+			RGLDbgPrint("\r\n%d - %s", i+1, sbuf);
 		}
 		litm.len = itm->dwFileSize;
 		ver = getBe32(&bodydat[itm->dwVersionOff]);
@@ -422,14 +422,14 @@ BOOL loadManifest(BOOL verifyOnly, char* manifest_folder)
 					DWORD cver = XamGetSystemVersion();
 					if(ver != cver)
 					{
-						dprintf("Error! Version mismatch\n");
-						dprintf("Kernel version: %d.%d.%d.%d\n", (cver>>28)&0xF, (cver>>24)&0xF, (cver>>8)&0xFFFF, cver&0xF);
-						dprintf("Update version: %d.%d.%d.%d\n", (ver>>28)&0xF, (ver>>24)&0xF, (ver>>8)&0xFFFF, ver&0xF);
+						RGLDbgPrint("Error! Version mismatch\n");
+						RGLDbgPrint("Kernel version: %d.%d.%d.%d\n", (cver>>28)&0xF, (cver>>24)&0xF, (cver>>8)&0xFFFF, cver&0xF);
+						RGLDbgPrint("Update version: %d.%d.%d.%d\n", (ver>>28)&0xF, (ver>>24)&0xF, (ver>>8)&0xFFFF, ver&0xF);
 						delete[] litm.data;
 						return FALSE;
 					}
 				}
-				dprintf("Manifest ok! Version: %d.%d.%d.%d\n", (ver>>28)&0xF, (ver>>24)&0xF, (ver>>8)&0xFFFF, ver&0xF);
+				RGLDbgPrint("Manifest ok! Version: %d.%d.%d.%d\n", (ver>>28)&0xF, (ver>>24)&0xF, (ver>>8)&0xFFFF, ver&0xF);
 				// check version match to running kernel!!!
 				litm.source = manifest_file;
 				litm.dest = DESTINATION_BASE;
@@ -437,34 +437,34 @@ BOOL loadManifest(BOOL verifyOnly, char* manifest_folder)
 				inf.push_back(litm);
 				if(verifyManifestItems(&litm.data[sizeof(SU_MAINIFEST_HEADER)], litm.len-sizeof(SU_MAINIFEST_HEADER), verifyOnly, manifest_folder))
 				{
-					dprintf("\n\nUpdate contents of %d installable items verified OK!\n", inf.size());
+					RGLDbgPrint("\n\nUpdate contents of %d installable items verified OK!\n", inf.size());
 					return TRUE;
 				}
 				else if(verifyOnly)
 				{
-					dprintf("total errors %d\n", errcnt);
+					RGLDbgPrint("total errors %d\n", errcnt);
 				}
 			}
 		}
 		delete[] litm.data;
 	}
-	dprintf("could not load %s!\n", manifest_file);
+	RGLDbgPrint("could not load %s!\n", manifest_file);
 	return FALSE;
 }
 
 BOOL installFiles(void)
 {
 	DWORD i;
-	dprintf("installing %d files\n", inf.size());
+	RGLDbgPrint("installing %d files\n", inf.size());
 	for(i = 0; i < inf.size(); i++)
 	{
-		dprintf("\r\n%d - %s", i+1, inf.at(i).dest.c_str());
+		RGLDbgPrint("\r\n%d - %s", i+1, inf.at(i).dest.c_str());
 		if(WriteBufToFile(inf.at(i).dest.c_str(), inf.at(i).data, inf.at(i).len, FALSE) == FALSE)
 		{
-			dprintf("ERROR WRITING TO DISK!\n");
+			RGLDbgPrint("ERROR WRITING TO DISK!\n");
 		}
 	}
-	dprintf("\n");
+	RGLDbgPrint("\n");
 	return TRUE;
 }
 
@@ -477,7 +477,7 @@ BOOL doDirCreate(char* cdir)
 	strcat(dirname, cdir);
 	if(CreateDirectory(dirname, NULL) == 0)
 	{
-		dprintf("error %d creating directory %s\n", GetLastError(), dirname);
+		RGLDbgPrint("error %d creating directory %s\n", GetLastError(), dirname);
 		return FALSE;
 	}
 	return TRUE;
@@ -546,17 +546,17 @@ NTSTATUS wipePartition(char* path)
 		sts = NtWriteFile(hDevi, NULL, NULL, NULL, &ios, buf, 0x1000, &lint);
 		if(sts >= 0)
 		{
-			DbgPrint("wipe partition %s succeeded\n", path);
+			RGLDbgPrint("wipe partition %s succeeded\n", path);
 		}
 		else
 		{
-			DbgPrint("wipe partition failed to overwrite header: 0x%08x\n", sts);
+			RGLDbgPrint("wipe partition failed to overwrite header: 0x%08x\n", sts);
 		}
 		NtClose(hDevi);
 	}
 	else
 	{
-		DbgPrint("wipe partition %s failed to open the partition: 0x%08x\n", path, sts);
+		RGLDbgPrint("wipe partition %s failed to open the partition: 0x%08x\n", path, sts);
 	}
 	return sts;
 }
@@ -578,10 +578,10 @@ void delinkPartitions(void)
 	STRING LinkName;
 	RtlInitAnsiString(&LinkName, "\\sap");
 	res = ObDeleteSymbolicLink(&LinkName);
-	DbgPrint("delete \\sap result %x\n", res);
+	RGLDbgPrint("delete \\sap result %x\n", res);
 	RtlInitAnsiString(&LinkName, "\\sep");
 	res = ObDeleteSymbolicLink(&LinkName);
-	DbgPrint("delete \\sep result %x\n", res);
+	RGLDbgPrint("delete \\sep result %x\n", res);
 }
 
 void relinkPartitions(char* sepdev, char* sapdev)
@@ -592,30 +592,30 @@ void relinkPartitions(char* sepdev, char* sapdev)
 	RtlInitAnsiString(&LinkName, "\\sep");
 	RtlInitAnsiString(&DeviName, sepdev);
 	res = ObCreateSymbolicLink(&LinkName, &DeviName);
-	DbgPrint("create \\sep result %x\n", res);
+	RGLDbgPrint("create \\sep result %x\n", res);
 
 	RtlInitAnsiString(&LinkName, "\\sap");
 	RtlInitAnsiString(&DeviName, sapdev);
 	res = ObCreateSymbolicLink(&LinkName, &DeviName);
-	DbgPrint("create \\sap result %x\n", res);
+	RGLDbgPrint("create \\sap result %x\n", res);
 }
 
 void formatThread(void)
 {
 	NTSTATUS ret;
 	formatStatus = (DWORD)-1;
-	DbgPrint("format thread started\n");
+	RGLDbgPrint("format thread started\n");
 	delinkPartitions();
 	ret = wipePartition(hddSysEx);
-	DbgPrint("ex wipe  : 0x%x\n", ret);
+	RGLDbgPrint("ex wipe  : 0x%x\n", ret);
 	ret = formatPartition(hddSysEx);
-	DbgPrint("ex format: 0x%x\n", ret);
+	RGLDbgPrint("ex format: 0x%x\n", ret);
 	if(ret >= 0)
 	{
 		ret = wipePartition(hddSysAux);
-		DbgPrint("ax wipe  : 0x%x\n", ret);
+		RGLDbgPrint("ax wipe  : 0x%x\n", ret);
 		ret = formatPartition(hddSysAux);
-		DbgPrint("ax format: 0x%x\n", ret);
+		RGLDbgPrint("ax format: 0x%x\n", ret);
 		if(ret >= 0)
 		{
 			relinkPartitions(hddSysEx, hddSysAux);
@@ -634,7 +634,7 @@ BOOL doFormatPartitions(void)
 	threadWaitStatus = 1;
 	unmountSepAux();
 	doLightSync(&threadWaitStatus);
-	DbgPrint("starting format thread\n");
+	RGLDbgPrint("starting format thread\n");
 	ExCreateThread(&pthread, 0x8000, &pthreadid, (PVOID) XapiThreadStartup , (LPTHREAD_START_ROUTINE)formatThread, NULL, 0x2);
 	XSetThreadProcessor(pthread, 4);
 	ResumeThread(pthread);
@@ -646,10 +646,10 @@ BOOL doFormatPartitions(void)
 	if(formatStatus == 0)
 	{
 		mountSepAux();
-		DbgPrint("format completed successfully!\n");
+		RGLDbgPrint("format completed successfully!\n");
 		return TRUE;
 	}
-	DbgPrint("format failed horribly!\n");
+	RGLDbgPrint("format failed horribly!\n");
 	return FALSE;
 }
 
@@ -663,17 +663,17 @@ HRESULT setupSysPartitions(char* manifest)
 
 	if(doFormatPartitions())
 	{
-		dprintf("format succeeded!\n");
+		RGLDbgPrint("format succeeded!\n");
 		Mount("\\Device\\Harddisk0\\SystemExtPartition", "\\System??\\SysExt:");
 		int retError = CopyDirectory(manifest, "SysExt:");
 		if(!retError)
 		{
 			DeleteDirectory(manifest, TRUE);
-			dprintf("sysex install successful!\n");
+			RGLDbgPrint("sysex install successful!\n");
 		}
 		else
 		{
-			dprintf("failed to install sysex partition: %08X\n", retError);
+			RGLDbgPrint("failed to install sysex partition: %08X\n", retError);
 		}
 
 		Mount("\\Device\\Harddisk0\\SystemAuxPartition", "\\System??\\SysAux:");
@@ -681,16 +681,16 @@ HRESULT setupSysPartitions(char* manifest)
 		if(!retError)
 		{
 			DeleteDirectory("HDD:\\Filesystems\\17489-dev\\$SystemUpdate_aux", TRUE);
-			dprintf("sysaux install successful!\n");
+			RGLDbgPrint("sysaux install successful!\n");
 		}
 		else
 		{
-			dprintf("failed to install sysaux partition: %08X\n", retError);
+			RGLDbgPrint("failed to install sysaux partition: %08X\n", retError);
 		}
 	}
 	else
 	{
-		dprintf("format FAILED!\n");
+		RGLDbgPrint("format FAILED!\n");
 	}
 
 	cleanInfList();

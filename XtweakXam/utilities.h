@@ -51,7 +51,14 @@ DWORD makeBranch(DWORD branchAddr, DWORD destination, BOOL linked=false);
 BOOL FileExists(LPCSTR lpFileName);
 
 
-void dprintf(const char* s, ...);
+// All log output goes through RGLDbgPrint. Define RGL_UART_PRINT to send it straight
+// to the debug UART (same approach as BladesDL's cprintf) instead of DbgPrint.
+#ifdef RGL_UART_PRINT
+void uartPrintf(const char* s, ...);
+#define RGLDbgPrint uartPrintf
+#else
+#define RGLDbgPrint DbgPrint
+#endif
 
 
 void swap_endian(BYTE* src, DWORD size);

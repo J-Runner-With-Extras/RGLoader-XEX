@@ -11,16 +11,46 @@ void Mount(char* dev, char* mnt)
 	ObCreateSymbolicLink(&asMount, &asDevice);
 }
 
-void dprintf(const char* s, ...)
+#ifdef RGL_UART_PRINT
+static DWORD uartSpinLock = 0;
+
+// Write one character to the debug UART and wait until it has been sent (port of BladesDL's cygPut)
+static void uartPutChar(char ch)
+{
+	*DBG_SERIAL_XMIT = ((DWORD)(BYTE)ch) << 24;
+	while(!(*DBG_SERIAL_STS & 0x02000000))
+	{
+	}
+}
+
+// Write a string to the debug UART, turning bare \n into \r\n for serial terminals
+static void uartPutString(const char* s)
+{
+	BYTE irql = KfAcquireSpinLock(&uartSpinLock);
+	char prev = 0;
+	for(; *s != '\0'; s++)
+	{
+		if(*s == '\n' && prev != '\r')
+		{
+			uartPutChar('\r');
+		}
+		uartPutChar(*s);
+		prev = *s;
+	}
+	KfReleaseSpinLock(&uartSpinLock, irql);
+}
+
+void uartPrintf(const char* s, ...)
 {
 	va_list argp;
 	char temp[512];
 
 	va_start(argp, s);
-	vsnprintf_s(temp, 512,512, s, argp);
+	vsnprintf_s(temp, 512, _TRUNCATE, s, argp);
 	va_end(argp);
-	OutputDebugStringA(temp);
+	uartPutString(temp);
 }
+#endif
 
 
 DWORD resolveFunct(char* modname, DWORD ord)
@@ -327,15 +357,15 @@ HRESULT cOzMount(const char* szDrive, const char* szDevice, const char* sysStr)
 void reLaunchXshell(void)
 {
 
-	printf("[RGLOADER]: Thread ---------!\n");
+	RGLDbgPrint("[RGLOADER]: Thread ---------!\n");
 
 	if(KeGetCurrentProcessType() == PROC_SYSTEM)
 	{
-		printf("[RGLOADER]: Thread is still system!\n");
+		RGLDbgPrint("[RGLOADER]: Thread is still system!\n");
 	}
 	else
 	{
-		printf("[RGLOADER]: Attempting to launch xshell! Mounting drives..\n");
+		RGLDbgPrint("[RGLOADER]: Attempting to launch xshell! Mounting drives..\n");
 	}
 
 
@@ -348,14 +378,14 @@ void LaunchXshell(void)
 {
 	if(KeGetCurrentProcessType() == PROC_SYSTEM)
 	{
-		printf("[RGLOADER]: System thread, attempting to launch xshell.\n");
+		RGLDbgPrint("[RGLOADER]: System thread, attempting to launch xshell.\n");
 		XSetLaunchData( NULL, 0 );
 
 		XamLoaderLaunchTitleEx("\\Device\\Flash\\xshell.xex", "\\Device\\Flash", NULL, 0);
 	}
 	else
 	{
-		printf("[RGLOADER]: Launching xshell!");
+		RGLDbgPrint("[RGLOADER]: Launching xshell!");
 		reLaunchXshell();
 	}
 }
