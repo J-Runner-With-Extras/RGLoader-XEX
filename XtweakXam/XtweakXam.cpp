@@ -71,6 +71,27 @@ void patch_MAP_USB(void)
 		setmem(xbdm_17489.hddsysaux_obname_ptr, xbdm_17489.hddsysaux_obname);
 		setmem(xbdm_17489.hddsysaux_enable, 0x01);
 
+		//add the hdd system partition (HDDX, where xefu/Compatibility lives) to xbn.
+		//xbdm has no HDDX slot, so reuse an unused one that points at "\Badpath".
+		//slot layout: [char* device][device length][name, 0x20 bytes][enable]
+		{
+			static const char hddxDev[] = "\\Device\\Harddisk0\\SystemPartition";
+			DWORD* slot = (DWORD*)xbdm_17489.hddx_slot;
+			if(memcmp((void*)xbdm_17489.hddx_obname, hddxDev, sizeof(hddxDev)) == 0
+				&& memcmp((void*)slot[0], "\\Badpath", 9) == 0)
+			{
+				char name[0x20] = "HDDX";
+				memcpy(&slot[2], name, sizeof(name));
+				slot[1] = sizeof(hddxDev) - 1;
+				slot[0] = xbdm_17489.hddx_obname;
+				slot[10] = 1;
+			}
+			else
+			{
+				RGLDbgPrint("   HDDX slot at %08X not as expected, skipped\r\n", xbdm_17489.hddx_slot);
+			}
+		}
+
 		//nop drivemap internal check (always be 1)
 		setmem(xbdm_17489.map_internal_check, 0x60000000);
 	}
