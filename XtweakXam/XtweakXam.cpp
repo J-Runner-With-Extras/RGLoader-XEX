@@ -12,6 +12,7 @@
 #include "xshell.h"
 #include "XBDMOffsets.h"
 #include "sysext.h"
+#include "sysredirect.h"
 using namespace std;
 
 static bool fKeepMemory=true;
@@ -454,7 +455,19 @@ BOOL Initialize(HANDLE hModule)
 		RGLDbgPrint(" * No system extended files found, skipping..\n");
 	}
 
-
+	// Keep this boot's system extended/aux partition contents (avatars, dash extensions) in a
+	// folder on the HDD, so the real partitions can keep the set another boot (e.g. stock)
+	// needs. Off unless SysExt_Redirect names the folder, relative to Hdd:.
+	// Must stay after the $SystemUpdate installer above: it wipes/formats the partitions by their
+	// device paths, which the hook would otherwise send to a folder on Partition1.
+	temp = reader->Get("Config", "SysExt_Redirect", "NOTFOUND");
+	if(temp != "NOTFOUND" && temp != "0" && temp != "false" && temp != "off" && temp != "none")
+	{
+		if(temp == "1" || temp == "true" || temp == "on")
+			RGLDbgPrint(" * SysExt_Redirect needs a folder name (e.g. Filesystems\\sysext), skipping\n");
+		else
+			SysRedirect_Install(temp.c_str());
+	}
 
 
 	RGLDbgPrint(" Patches successfully applied! \r\n\r\n");
