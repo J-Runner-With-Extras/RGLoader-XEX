@@ -36,6 +36,12 @@
     <ClInclude Include="xshell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="coverart.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gamelib_patch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="sysext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -66,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HUD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="coverart.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sysext.cpp">
