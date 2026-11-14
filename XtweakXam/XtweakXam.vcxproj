@@ -175,6 +175,8 @@
     <None Include="xex.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="coverart.h" />
+    <ClInclude Include="gamelib_patch.h" />
     <ClInclude Include="HUD.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="INIReader.h" />
@@ -186,6 +188,7 @@
     <ClInclude Include="xshell.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="coverart.cpp" />
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="ini.c" />
     <ClCompile Include="INIReader.cpp" />

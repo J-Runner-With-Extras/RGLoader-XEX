@@ -12,6 +12,7 @@
 #include "xshell.h"
 #include "XBDMOffsets.h"
 #include "sysext.h"
+#include "coverart.h"
 using namespace std;
 
 static bool fKeepMemory=true;
@@ -230,6 +231,15 @@ NTSTATUS XexpLoadImageHook(LPCSTR xexName, DWORD typeInfo, DWORD ver, PHANDLE mo
 				setmem(0x9011841C, 0x38600000);
 			}
 
+		}
+
+		const char * dashName = "dash.xex";
+		if(strlen(xexName) >= 8 && stricmp(xexName + strlen(xexName) - 8, dashName) == 0)
+		{
+			RGLDbgPrint("\n\n ***RGLoader.xex*** \n   -Re-applying patches to: %s!\n", xexName);
+
+			if(CoverArt_Hook_Dash(modHandle != NULL ? *modHandle : NULL))
+				RGLDbgPrint("     * Library tiles show box art from the cover art folder.\n\n");
 		}
 	}
 	return ret;
@@ -489,6 +499,22 @@ BOOL Initialize(HANDLE hModule)
 	if(temp == "1" || temp == "true" || temp=="on")
 	{
 		patch_hook_xexload();
+	}
+
+	// library box art (applied when dash.xex loads, so needs Persistent_Patches)
+	temp = reader->Get("Config", "Cover_Art_Folder", "NOTFOUND");
+	if(temp != "NOTFOUND")
+	{
+		if(temp == "0" || temp == "false" || temp == "off" || temp == "none")
+			temp = "";
+		RGLDbgPrint(" * Cover art folder: %s\n", temp.c_str());
+		CoverArt_Set_Folder(temp.c_str());
+	}
+	temp = reader->Get("Config", "Cover_Art_Root", "NOTFOUND");
+	if(temp != "NOTFOUND" && temp != "0" && temp != "false" && temp != "off" && temp != "none")
+	{
+		RGLDbgPrint(" * Cover art root: %s\n", temp.c_str());
+		CoverArt_Set_Root(temp.c_str());
 	}
 
 	temp = reader->Get("Config", "Default_Dashboard", "NOTFOUND");
