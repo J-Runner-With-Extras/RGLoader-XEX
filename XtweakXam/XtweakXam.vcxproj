@@ -181,6 +181,7 @@
     <ClInclude Include="XBDMOffsets.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sysext.h" />
+    <ClInclude Include="sysredirect.h" />
     <ClInclude Include="utilities.h" />
     <ClInclude Include="xam.h" />
     <ClInclude Include="xshell.h" />
@@ -195,6 +196,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_LTCG|Xbox 360'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="sysext.cpp" />
+    <ClCompile Include="sysredirect.cpp" />
     <ClCompile Include="utilities.cpp" />
     <ClCompile Include="xam.cpp" />
     <ClCompile Include="xshell.cpp" />
